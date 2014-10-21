@@ -9,15 +9,34 @@ Smart crawler can put some parameters to the query and analize results of query 
 
 Task example:
 {
-    [
-        {
-            "URL" : "https://api.vk.com/method/users.get?user_id=1",
-            "ResultType" : "json"
-        },
-        {
-            "URL" : "https://api.vk.com/method/users.get?user_id=1&count=%1&offset=%2"
-            "ResultType" : "json"
-            "parameters" : [10, 10]
-        }
-    ]
+    "type": "raw"
+    "data": [
+            {
+                "URL" : "https://api.vk.com/method/users.get?user_id=1",
+            },
+            {
+                "URL" : "https://api.vk.com/method/users.get?user_id=1&count=10&offset=10"
+            }
+            ]
 }
+
+{
+    "type": "raw with parameters"
+    "data": [
+            {
+                "URL" : "https://api.vk.com/method/users.get?user_id=1",
+                "ResultType" : "json"
+            },
+            {
+                "URL" : "https://api.vk.com/method/users.get?user_id=1&count=%1&offset=%2"
+                "ResultType" : "json"
+                "parameters" : [10, 10]
+            }
+            ]
+}
+
+
+Crawlers can get tasks through the next interfaces:
+* Mongo REST API [SleepyMongoose] (https://github.com/10gen-labs/sleepy.mongoose)
+* Mongo direct - with appropriate driver
+* Original REST API
