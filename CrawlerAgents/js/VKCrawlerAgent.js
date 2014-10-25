@@ -125,15 +125,51 @@ function resultsToString(arr)
     return "[" + res.substring(1) + "]"
 }
 
-function send_results(results)
+function arrayToString(array)
 {
-    return http_post("http://" + host + ":" + port + "/" + database + "/" + result_collection + "/" + "_insert", 'docs=' + resultsToString(results))
+    var res = "";
+    for(var i in array)
+    {
+        res += "," + array[i]
+    }    
+
+    return "[" + res.substring(1) + "]"
+}
+
+function send_results(task_ids)
+{
+    var uri = "http://" + host + ":" + port + "/" + database + "/" + result_collection + "/" + "_insert"
+    var param = 'docs=' + resultsToString(results)
+    return http_post(uri, param)
+}
+
+function objIdToString(obj)
+{
+  return '{"$oid":"' + obj['$oid'] + '"}' 
+}
+
+function getTasksIds(tasks)
+{
+    var ret = [];
+    for (var i in tasks)
+    {
+        ret.push(objIdToString(tasks[i]._id))
+    }    
+    return ret;
+}
+
+function update_task_count(tasks)
+{
+    var uri = "http://" + host + ":" + port + "/" + database + "/" + collection + "/" + "_update"
+    var param = 'criteria={"_id":{"$in":' + tasks + '}}&newobj={"$inc":{"usecount":1}}&multi=true&safe=true'
+    return http_post(uri, param)
 }
 
 print("Started");
 
 var tasks = get_tasks();
 print("Got " + tasks.length + " new tasks");
+print("Update cout result: " + update_task_count(arrayToString(getTasksIds(tasks))));
 var results = run_tasks(tasks);
 
 try
