@@ -10,6 +10,7 @@ Smart crawler can put some parameters to the query and analize results of query 
 Task example:
 {
     "type": "raw"
+    "tag":  "some tag"
     "data": [
             {
                 "URL" : "https://api.vk.com/method/users.get?user_id=1",
@@ -22,6 +23,7 @@ Task example:
 
 {
     "type": "raw with parameters"
+    "tag":  "some tag"
     "data": [
             {
                 "URL" : "https://api.vk.com/method/users.get?user_id=1",
