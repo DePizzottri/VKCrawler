@@ -7,21 +7,25 @@ object Main extends App {
 
   val users = db("users")
 
-  val userIDs = users.map { user => user("id").asInstanceOf[Double].round }
+  val userIDs = users.map { user => user("uid") }
 
   val tasks = db("tasks")
 
-  for (gid <- userIDs.groupBy { id => id / 20 }) {
+  for (gid <- userIDs.zipWithIndex.groupBy { id => id._2 / 100 }) {
     val bld = MongoDBList.newBuilder
 
     gid._2.foreach {
-      id => bld += MongoDBObject("URL" -> s"https://api.vk.com/method/friends.get?user_id=$id")
+      iid =>
+        {
+          val id = iid._1
+          bld += MongoDBObject("URL" -> s"https://api.vk.com/method/friends.get?user_id=$id")
+        }
     }
 
     val task = MongoDBObject("type" -> "raw", "tag" -> "friends_list", "data" -> bld.result())
 
     tasks.insert(task)
   }
-  
+
   mongoClient.close()
 }
