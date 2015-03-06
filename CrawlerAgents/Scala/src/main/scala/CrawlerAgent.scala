@@ -1,3 +1,9 @@
+/*
+ * Friends list crawler 
+ */
+
+package VKCrawler.crawlers.basic
+
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBList
 import scala.io.Codec
