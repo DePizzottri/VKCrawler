@@ -1,4 +1,11 @@
 package com.vkcrawler.crawler.basic
+=======
+/*
+ * Friends list crawler 
+ */
+
+package VKCrawler.crawlers.basic
+>>>>>>> origin/master
 
 import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.commons.MongoDBList
