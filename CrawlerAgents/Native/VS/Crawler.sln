@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Crawler", "Crawler\Crawler.vcxproj", "{763BC8FD-691F-4507-B96B-9429CAED4C23}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1} = {EF43D8A6-71B7-44CE-857F-BEDA91A727A1}
+		{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA} = {73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FriendsListCrawlPlugin", "FriendsListCrawlPlugin\FriendsListCrawlPlugin.vcxproj", "{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1} = {EF43D8A6-71B7-44CE-857F-BEDA91A727A1}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin", "Plugin\Plugin.vcxproj", "{EF43D8A6-71B7-44CE-857F-BEDA91A727A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{763BC8FD-691F-4507-B96B-9429CAED4C23}.Debug|Win32.ActiveCfg = Debug|Win32
+		{763BC8FD-691F-4507-B96B-9429CAED4C23}.Debug|Win32.Build.0 = Debug|Win32
+		{763BC8FD-691F-4507-B96B-9429CAED4C23}.Release|Win32.ActiveCfg = Release|Win32
+		{763BC8FD-691F-4507-B96B-9429CAED4C23}.Release|Win32.Build.0 = Release|Win32
+		{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}.Debug|Win32.Build.0 = Debug|Win32
+		{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}.Release|Win32.ActiveCfg = Release|Win32
+		{73F940C6-E597-4FD2-8AF2-F0B4E8735CDA}.Release|Win32.Build.0 = Release|Win32
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1}.Debug|Win32.Build.0 = Debug|Win32
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1}.Release|Win32.ActiveCfg = Release|Win32
+		{EF43D8A6-71B7-44CE-857F-BEDA91A727A1}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

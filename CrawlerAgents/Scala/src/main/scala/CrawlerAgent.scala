@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package com.vkcrawler.crawler.basic
 =======
 /*
