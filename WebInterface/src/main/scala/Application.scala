@@ -41,9 +41,9 @@ object Application extends App with SimpleRoutingApp {
   val mongoClient = MongoClient("localhost", 27017)
   val db = mongoClient("VK_test")
 
-  def getTaskFromDB():Task = {
+  def getTaskFromDB(`type`:String):Task = {
     val tasks = db("tasks")
-    val optTask = tasks.findAndModify(MongoDBObject(), MongoDBObject("usecount" -> 1), $inc("usecount" -> 1))
+    val optTask = tasks.findAndModify(MongoDBObject("type" -> `type`), MongoDBObject("usecount" -> 1), $inc("usecount" -> 1))
      
     val task = optTask.get
     
@@ -74,8 +74,10 @@ object Application extends App with SimpleRoutingApp {
   lazy val getTask =
     path("getTask") {
       get {
-        complete{ 
-          getTaskFromDB()        
+        parameters("version".as[Int], "types".as[String]) { (version, types) =>
+            complete{ 
+              getTaskFromDB(types)        
+            }
         }
       }
     }
