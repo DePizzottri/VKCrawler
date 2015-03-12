@@ -52,9 +52,10 @@ object Main extends App {
   }
   
   def bfs(start:Int) {
+    @tailrec
     def aux(cur:List[User], used:Set[Int]):Unit = cur match { 
       case head::tail => {
-        val l = Await.result(head.friends, 100 seconds).filter(!used.contains(_))
+        val l = Await.result(head.friends.fallbackTo(Future{List()}), 300 seconds).filter(!used.contains(_))
         insert(head.uid, l)
         aux(tail ::: l.map(User(_)), used + head.uid)
       } 
