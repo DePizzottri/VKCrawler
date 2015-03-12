@@ -9,6 +9,11 @@
 #include <Poco/SharedLibrary.h>
 
 #include <Plugin.h>
+#include <PluginsCache.h>
+#include <TaskNotifications.h>
+
+#include <WEBGetTask.h>
+#include <WorkerTask.h>
 
 #include <map>
 
@@ -41,16 +46,14 @@ using namespace std;
 //    }
 //};
 
-typedef std::map<std::string, AbstractPlugin*> PluginsMap;
-PluginsMap plugins;
 
 class App: public Poco::Util::ServerApplication {
-	AbstractPlugin::PluginLoader m_loader;	
 
 protected:
 	void initialize(Application & self) {
-        loadConfiguration();
+        loadConfiguration("../../config/example.properties");
 
+		auto& pc = PluginsCache::instance();
 		//load plugins
 		for (Poco::DirectoryIterator d = Poco::DirectoryIterator(self.config().getString("application.dir")); d != Poco::DirectoryIterator(); ++d)
 		{
@@ -59,13 +62,7 @@ protected:
 			{
 				try
 				{
-					m_loader.loadLibrary(d->path());
-
-					AbstractPlugin* plug = m_loader.create(path.getBaseName());					
-
-					plugins.insert(std::make_pair(plug->getType(), plug));
-
-					m_loader.classFor(path.getBaseName()).autoDelete(plug);
+					pc.loadLibrary(path);
 
 					poco_information(logger(), "Plugin " + path.getFileName() + " loaded");
 				}
@@ -76,10 +73,24 @@ protected:
 			}
 		}
 
+		//start working theards
+		m_manager.start(new WEBGetTask(m_queue));
+
+		//2 worker threads
+		m_manager.start(new WorkerTask(m_queue, 1));
+		m_manager.start(new WorkerTask(m_queue, 2));
+
         ServerApplication::initialize(self);
     }
 
     void uninitialize() {
+		m_manager.cancelAll();
+		
+		m_queue.enqueueNotification(new StopNotification);
+		m_queue.enqueueNotification(new StopNotification);
+
+		m_manager.joinAll();
+
         ServerApplication::uninitialize();
     }
 
@@ -91,6 +102,11 @@ protected:
 
 		return Application::EXIT_OK;
     }
+private:
+
+	Poco::TaskManager m_manager;
+	Poco::ThreadPool  m_threadPool;
+	Poco::NotificationQueue m_queue;
 };
 
 POCO_SERVER_MAIN(App)

@@ -27,6 +27,9 @@
     <ClCompile Include="..\..\App\src\WorkerTask.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\App\src\PluginsCache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\App\include\stdafx.h">
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\App\include\TaskNotifications.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\App\include\PluginsCache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

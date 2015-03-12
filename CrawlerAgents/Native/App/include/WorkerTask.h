@@ -1,3 +1,6 @@
+#ifndef Crawler_WorkerTask_INCLUDED
+#define Crawler_WorkerTask_INCLUDED
+
 #include <Poco/Task.h>
 #include <Poco/NotificationQueue.h>
 
@@ -9,5 +12,7 @@ public:
 
 	void runTask();
 protected:
-	virtual void process(std::string const& URL) = 0;
+	//virtual void process(std::string const& URL) = 0;
 };
+
+#endif //Crawler_WorkerTask_INCLUDED

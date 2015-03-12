@@ -9,7 +9,8 @@
 
 #include <TaskNotifications.h>
 
-#include <Poco/JSON/Parser.h>
+#include <Poco/StreamCopier.h>
+#include <PluginsCache.h>
 
 WEBGetTask::WEBGetTask(Poco::NotificationQueue & queue):
 	Poco::Task("WEBGetTask"), m_jobQueue(queue)
@@ -34,7 +35,17 @@ void WEBGetTask::runTask() {
 		HTTPRequest req(HTTPRequest::HTTP_GET, "/getTask", HTTPMessage::HTTP_1_1);
 
 		//query parameters
-		//req.add("", "");
+		req.add("version", "1");
+		{
+			auto types = PluginsCache::instance().getSupportedTypes();
+			std::string param;
+			for (auto& t: types)
+			{
+				param += t + ",";
+			}
+			param = param.substr(0, param.length() - 1);
+			req.add("types", param);
+		}
 
 		session.sendRequest(req);
 
@@ -43,31 +54,13 @@ void WEBGetTask::runTask() {
 
 		poco_information_f1(app.logger(), "Task GET response status: %d", (int)resp.getStatus());
 
-		//parse response
-		Poco::JSON::Parser parser;
+		std::string dataBuf;
 
-		try
-		{
-			auto v = parser.parse(respStream);
+		Poco::StreamCopier::copyToString(respStream, dataBuf);
 
-			Poco::DynamicAny result = parser.result();
-
-			auto obj = result.extract<Poco::JSON::Object::Ptr>();
-
-			auto urls = obj->get("data").extract<Poco::JSON::Array::Ptr>();
-
-			for (int i = 0; i < urls->size(); ++i)
-			{
-				//create jobs
-				m_jobQueue.enqueueNotification(
-					new CrawlJobNotification(urls->getElement<std::string>(i))
-					);
-			}
-		}
-		catch (Poco::Exception& e)
-		{
-			poco_error(app.logger(), "Error parse task: " + e.displayText());
-		}
+		m_jobQueue.enqueueNotification(
+			new CrawlJobNotification(dataBuf)
+		);
 	}
 
 	poco_information(app.logger(), "WEB Get task finished");

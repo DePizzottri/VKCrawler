@@ -1,5 +1,8 @@
 ## Crawler agents ##
 
+All crawlers beside native is outdated or standalone
+----------------------------------------------------
+
 Crawler agent is an application (or just script) which can:
     * Connect to the predefined web address and get a banch of tasks. Task is simple URL to get content from.
     * Query each URL

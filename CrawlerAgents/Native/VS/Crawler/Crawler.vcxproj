@@ -72,6 +72,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\App\src\App.cpp" />
+    <ClCompile Include="..\..\App\src\PluginsCache.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\App\src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -81,6 +84,7 @@
     <ClCompile Include="..\..\App\src\WorkerTask.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\App\include\PluginsCache.h" />
     <ClInclude Include="..\..\App\include\TaskNotifications.h" />
     <ClInclude Include="..\..\App\include\WEBGetTask.h" />
     <ClInclude Include="..\..\App\include\WorkerTask.h" />
