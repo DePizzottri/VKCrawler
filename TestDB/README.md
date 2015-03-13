@@ -27,7 +27,7 @@ Current state of social graph.
 friends_dynamic
 ---------------
 Changing of social graph throught the time.
-Tracks only friends and date of processing
+Tracks only friends and date of processing.
 ```
 {
     uid: id of the user (int),
@@ -65,13 +65,13 @@ Table with tasks for agents
     data: task specific data (object),
     usecount: count of quering this task by agents, tag field to sort tasks (int),
     createDate: date of creation (ISODate),
-    lastUse: date of the last quering (ISODate)
+    lastUseDate: date of the last quering (ISODate)
 }
 ```
 
 task_statistics
 ---------------
-Here lies meta information about results of processing of the stasks
+Here lies meta information about results of processing of the tasks
 ```
 {
     type: type of the task (string),

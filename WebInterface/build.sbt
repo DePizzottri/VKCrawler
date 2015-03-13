@@ -1,4 +1,4 @@
-name := """TaskFontEnd"""
+name := """VCCrawler WEB Interface"""
 
 version := "0.0.0"
 

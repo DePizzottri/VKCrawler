@@ -1,66 +1,20 @@
-import spray.routing.SimpleRoutingApp
+package com.vkcrawler.WEBInterface
+
 import akka.actor.ActorSystem
-import spray.http.StatusCodes
-import spray.json.DefaultJsonProtocol
-import spray.httpx.SprayJsonSupport
-
-import com.mongodb.casbah.Imports._
-import com.mongodb.casbah.commons.MongoDBList
-import scala.io.Codec
-import com.mongodb.util.JSON
-
+import spray.routing.SimpleRoutingApp
+import spray.routing.ValidationRejection
 import spray.json._
+import spray.http.StatusCodes
+import java.util.Date
+import com.vkcrawler.DataModel._
+import com.vkcrawler.DataModel.SprayJsonSupport._
+import com.vkcrawler.DataModel.SprayJsonSupport.FriendsListTaskResultJsonSupport._
 
-case class Data(URL: String)
-case class Task(`type`: String, tag: String, data: List[String])
-
-case class Friends(list: List[Long])
-
-object TaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  implicit val dataFormat = jsonFormat1(Data)
-  implicit val taskFormat = jsonFormat3(Task)
-}
-
-object FriendsJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  implicit val friendsFormat = jsonFormat1(Friends)
-}
-
-object TaskDB {
-  def apply(o:DBObject) = new Task(
-        o("type").asInstanceOf[String], 
-        o("tag").asInstanceOf[String], 
-        o("data").asInstanceOf[BasicDBList].map((b:Any) => {
-          b.asInstanceOf[DBObject].as[String]("URL")
-          }
-        ).toList
-      )
-}
-
+import com.vkcrawler.WEBInterface.MongoDB._
 
 object Application extends App with SimpleRoutingApp {
-  val mongoClient = MongoClient("localhost", 27017)
-  val db = mongoClient("VK_test")
 
-  def getTaskFromDB(`type`:String):Task = {
-    val tasks = db("tasks")
-    val optTask = tasks.findAndModify(MongoDBObject("type" -> `type`), MongoDBObject("usecount" -> 1), $inc("usecount" -> 1))
-     
-    val task = optTask.get
-    
-    TaskDB(task)
-    
-    //com.mongodb.util.JSON.serialize(task)
-    
-    //spray.json.JsonParser.Json.toJson(st)
-    
-//    new Task(
-//        task("type").asInstanceOf[String], 
-//        task("tag").asInstanceOf[String], 
-//        task("data").asInstanceOf[BasicDBList].asInstanceOf[List[String]]        
-//    )
-  }
-
-  implicit val system = ActorSystem("my-system")
+  implicit val system = ActorSystem("CrawlerWEBInterface-system")
 
   lazy val root =
     path("") {
@@ -68,19 +22,32 @@ object Application extends App with SimpleRoutingApp {
         redirect("hello", StatusCodes.TemporaryRedirect)
       }
     }
-  
+
   import TaskJsonSupport._
 
   lazy val getTask =
     path("getTask") {
       get {
         parameters("version".as[Int], "types".as[String]) { (version, types) =>
-            complete{ 
-              getTaskFromDB(types)        
+          types match {
+            case "" => reject(ValidationRejection("""Parameter "types" can not be empty"""))
+            case _ => complete {
+              MongoDBSource.getTask(types.split(","))
             }
+          }
         }
       }
     }
+
+  lazy val putTask = {
+    path("putTask") {
+      put {
+        entity(as[FriendsListTaskResult]) { res =>
+          complete("Ok (not implemented)")
+        }
+      }
+    }
+  }
 
   lazy val hello =
     path("hello") {
@@ -92,6 +59,6 @@ object Application extends App with SimpleRoutingApp {
     }
 
   startServer(interface = "localhost", port = 8080) {
-    root ~ hello ~ getTask
+    root ~ hello ~ getTask ~ putTask
   }
 }
