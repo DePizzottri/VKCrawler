@@ -26,7 +26,7 @@ case class FriendsListTaskResult(
 object DBConversion {
   def task(o: DBObject) = Task(
     o("type").asInstanceOf[String],
-    (for (obj <- o("data").asInstanceOf[BasicDBList]) yield obj.asInstanceOf[Long]).toList,
+    (for (obj <- o("data").asInstanceOf[BasicDBList]) yield obj.asInstanceOf[Number].longValue).toList,
     o("createDate").asInstanceOf[DateTime],
     o.getAsOrElse[Option[DateTime]]("lastUseDate", None))
 

@@ -4,6 +4,7 @@
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/HTTPMessage.h>
+#include <Poco/URI.h>
 
 #include <Poco/Util/Application.h>
 
@@ -32,10 +33,11 @@ void WEBGetTask::runTask() {
 		//request for a task
 		HTTPClientSession session(serverHost, serverPort);
 
-		HTTPRequest req(HTTPRequest::HTTP_GET, "/getTask", HTTPMessage::HTTP_1_1);
+		URI uri("/getTask");
 
 		//query parameters
-		req.add("version", "1");
+		uri.addQueryParameter("version", "1");
+
 		{
 			auto types = PluginsCache::instance().getSupportedTypes();
 			std::string param;
@@ -44,9 +46,10 @@ void WEBGetTask::runTask() {
 				param += t + ",";
 			}
 			param = param.substr(0, param.length() - 1);
-			req.add("types", param);
+			uri.addQueryParameter("types", param);
 		}
 
+		HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
 		session.sendRequest(req);
 
 		HTTPResponse resp;

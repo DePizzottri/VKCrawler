@@ -41,7 +41,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\lib\poco-1.6.0-all\Foundation\include;D:\lib\poco-1.6.0-all\JSON\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\lib\poco-1.6.0-all\Foundation\include;D:\lib\poco-1.6.0-all\JSON\include;D:\lib\poco-1.6.0-all\Net\include;D:\lib\poco-1.6.0-all\Util\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\lib\poco-1.6.0-all\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

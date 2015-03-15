@@ -19,7 +19,7 @@ Current state of social graph.
     friends:list of ids of friends (array of ints)
     firstName: string
     lastName: string
-    birthday: ISODate
+    birthday: ISODate //not avalible
     city: int 
 }
 ```
@@ -33,13 +33,13 @@ Tracks only friends and date of processing.
     uid: id of the user (int),
     friendsAdded: new added friends (array of ints),
     friendsDeleted: deleted friends (array of ints),
-    timestamp: date of processing (ISODate)
+    processDate: date of processing (ISODate)
 }
 ```
 
 friends_raw
 -----------
-Collection for unprocessed raw data from crwaler agents
+Collection for unprocessed raw data from crawler agents
 ```
 {
     uid: int
@@ -48,9 +48,9 @@ Collection for unprocessed raw data from crwaler agents
             id
             city
         }
-    //firstName: string
-    //lastName: string
-    birthday: ISODate
+    firstName: string
+    lastName: string
+    birthday: ISODate //not avalible
     city: int 
     processDate: ISODate
 }

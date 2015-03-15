@@ -7,7 +7,7 @@ Get task example
 Task JSON object in the response body
 
 Put task example
-/putTask
+/postTask
 
 Task results JSON object in the body in the form
 ```

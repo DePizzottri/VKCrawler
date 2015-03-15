@@ -14,6 +14,8 @@
 #include <Poco/JSON/Parser.h>
 #include <PluginsCache.h>
 
+#include <Poco/StreamCopier.h>
+
 WorkerTask::WorkerTask(Poco::NotificationQueue& queue, int n):
 	Task("WorkerTask " + Poco::NumberFormatter::format(n)),
 	m_jobQueue(queue)
@@ -64,13 +66,25 @@ void WorkerTask::runTask()
 			using namespace Poco::Net;
 			HTTPClientSession session(serverHost, serverPort);
 
-			HTTPRequest req(HTTPRequest::HTTP_POST, "/putTask", HTTPMessage::HTTP_1_1);
+			HTTPRequest req(HTTPRequest::HTTP_POST, "/postTask", HTTPMessage::HTTP_1_1);
 
 			//query parameters
 			//req.add("", "");
+			std::stringstream ss;
+			Poco::JSON::Stringifier::stringify(ans, ss);
+			//Poco::JSON::Stringifier::stringify(ans, std::cout);
 
+			req.setContentLength(ss.str().length());
+			req.setContentType("application/json");
 			auto& reqStream = session.sendRequest(req);
-			Poco::JSON::Stringifier::stringify(ans, reqStream);
+			reqStream << ss.str();
+
+			HTTPResponse resp;
+			auto& respStream = session.receiveResponse(resp);
+
+			std::string postAns;
+			Poco::StreamCopier::copyToString(respStream, postAns);
+			poco_information(app.logger(), "POST task: " + postAns);
 		}
 		catch (Poco::Exception& e)
 		{

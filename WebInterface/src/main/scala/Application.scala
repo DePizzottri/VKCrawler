@@ -39,11 +39,12 @@ object Application extends App with SimpleRoutingApp {
       }
     }
 
-  lazy val putTask = {
-    path("putTask") {
-      put {
+  lazy val postTask = {
+    path("postTask") {
+      post {
         entity(as[FriendsListTaskResult]) { res =>
-          complete("Ok (not implemented)")
+          MongoDBSource.putTaskResult(res)
+          complete("Ok")
         }
       }
     }
@@ -59,6 +60,6 @@ object Application extends App with SimpleRoutingApp {
     }
 
   startServer(interface = "localhost", port = 8080) {
-    root ~ hello ~ getTask ~ putTask
+    root ~ hello ~ getTask ~ postTask
   }
 }

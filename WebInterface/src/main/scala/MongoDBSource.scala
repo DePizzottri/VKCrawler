@@ -11,7 +11,7 @@ object MongoDBSource {
   RegisterJodaTimeConversionHelpers()
 
   val mongoClient = MongoClient("localhost", 27017)
-  val db = mongoClient("VK_test")
+  val db = mongoClient("VK_test_1")
 
   def getTask(types: Array[String]): Either[Task, JsObject] = {
     val tasks = db("tasks")
