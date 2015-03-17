@@ -3,15 +3,20 @@ import com.mongodb.casbah.Imports._
 object Main extends App {
   val mongoClient = MongoClient("localhost", 27017)
 
-  val db = mongoClient("VK_test")
+  val db = mongoClient("VK_test_1")
 
-  val users = db("users")
+  val users = db("friends_list")
 
-  val userIDs = users.map { user => user("uid") }
+  val curUserIDs = users.map { user => user("uid") }
+  
+  //> db.tasks.aggregate([{$match:{type:"friends_list"}},{$group:{_id:"$type", tot:{$push:{"data":"$data
+//"}}}}])
 
   val tasks = db("tasks")
+  
+  tasks.ma
 
-  for (gid <- userIDs.zipWithIndex.groupBy { id => id._2 / 100 }) {
+  for (gid <- curUserIDs.zipWithIndex.groupBy { id => id._2 / 100 }) {
     val bld = MongoDBList.newBuilder
 
     gid._2.foreach {

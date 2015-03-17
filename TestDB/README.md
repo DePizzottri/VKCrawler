@@ -16,7 +16,7 @@ Current state of social graph.
 ```
 {
     uid: id of user (int)
-    friends:list of ids of friends (array of ints)
+    friends: list of ids of friends (array of ints)
     firstName: string
     lastName: string
     birthday: ISODate //not avalible

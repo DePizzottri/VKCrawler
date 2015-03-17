@@ -95,14 +95,14 @@ Poco::JSON::Array::Ptr friends_get(int uid)
 			//auto last_name = userObj->get("last_name").extract<string>();
 			auto city = userObj->get("city").extract<int>();
 
-			//Object::Ptr friends(new Poco::JSON::Object);
+			Object::Ptr friends(new Poco::JSON::Object);
 
-			//friends->set("uid", uid);
-			//friends->set("city", city);
+			friends->set("uid", fuid);
+			friends->set("city", city);
 
-			Array::Ptr friends(new Array);
-			friends->add(fuid);
-			friends->add(city);
+			//Array::Ptr friends(new Array);
+			//friends->add(fuid);
+			//friends->add(city);
 
 			ret->add(friends);
 		}

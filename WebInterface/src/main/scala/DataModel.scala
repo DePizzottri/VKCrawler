@@ -12,9 +12,11 @@ case class TaskStatistics(
   lastUseDate: DateTime,
   processDate: DateTime)
 
+case class FriendsRawFR(uid:Long, city:Int)
+
 case class FriendsRaw(
   uid: Long,
-  friends: List[(Long, Int)],
+  friends: List[FriendsRawFR],
   birthday: DateTime,
   city: Int,
   processDate: DateTime)
@@ -38,7 +40,7 @@ object DBConversion {
 
   def friendsRaw(o: DBObject) = FriendsRaw(
     o("uid").asInstanceOf[Long],
-    o("friends").asInstanceOf[List[(Long, Int)]],
+    o("friends").asInstanceOf[List[FriendsRawFR]],
     o("birthday").asInstanceOf[DateTime],
     o("city").asInstanceOf[Int],
     o("processDate").asInstanceOf[DateTime])
@@ -61,7 +63,7 @@ object Implicits {
       case FriendsRaw(uid, friends, birthday, city, processDate) =>
         MongoDBObject(
           "uid" -> uid,
-          "friends" -> friends,
+          "friends" -> friends.map{case FriendsRawFR(uid, city) => MongoDBObject("uid" -> uid, "city" -> city)},
           "birthday" -> birthday,
           "city" -> city,
           "processDate" -> processDate)

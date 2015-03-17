@@ -77,8 +77,9 @@ protected:
 		m_manager.start(new WEBGetTask(m_queue));
 
 		//2 worker threads
-		m_manager.start(new WorkerTask(m_queue, 1));
-		m_manager.start(new WorkerTask(m_queue, 2));
+		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
+		for (int i = 0; i < workerNum; ++i)
+			m_manager.start(new WorkerTask(m_queue, 1));
 
         ServerApplication::initialize(self);
     }
@@ -86,8 +87,9 @@ protected:
     void uninitialize() {
 		m_manager.cancelAll();
 		
-		m_queue.enqueueNotification(new StopNotification);
-		m_queue.enqueueNotification(new StopNotification);
+		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
+		for (int i = 0; i < workerNum; ++i)
+			m_queue.enqueueNotification(new StopNotification);
 
 		m_manager.joinAll();
 

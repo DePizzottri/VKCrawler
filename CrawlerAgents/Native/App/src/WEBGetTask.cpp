@@ -26,10 +26,13 @@ void WEBGetTask::runTask() {
 	const string serverHost = app.config().getString("server.host");
 	const Poco::UInt16 serverPort = app.config().getUInt("server.port");
 	const Poco::UInt16 delaySeconds = app.config().getUInt("GetTaskDelay") * 1000; //1000 milliseconds in second
+	const Poco::UInt16 maxQueuedTasks = app.config().getUInt("maxQueuedTasks", 0);
 
 	poco_information(app.logger(), "WEB Get task started");
 	while (!sleep(delaySeconds))
 	{
+		if (m_jobQueue.size() > maxQueuedTasks)
+			continue;
 		//request for a task
 		HTTPClientSession session(serverHost, serverPort);
 

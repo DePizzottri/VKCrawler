@@ -1,6 +1,6 @@
 ## Friends list task master ##
 
-It takes IDs from 'users' collection and generates tasks for getting it's friends list.
+Generates tasks for "friends list" crawling. Generates new tasks for new users.
 
-main\scala\FLTaskMaster.scala - simple Master
-main\scala\FLTaskMasterActor.scala - reactive with scheduler
+main\scala\FLTaskMaster.scala - one run simple Master
+main\scala\FLTaskMasterActor.scala - reactive with scheduler (not implemented)
