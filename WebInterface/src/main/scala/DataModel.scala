@@ -4,7 +4,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.DBObject
 import org.joda.time.DateTime
 
-case class Task(`type`: String, data: List[Long], createDate: DateTime, lastUseDate: Option[DateTime])
+case class Task(`type`: String, data: List[Long], createDate: DateTime, lastUseDate: DateTime)
 
 case class TaskStatistics(
   `type`: String,
@@ -30,7 +30,7 @@ object DBConversion {
     o("type").asInstanceOf[String],
     (for (obj <- o("data").asInstanceOf[BasicDBList]) yield obj.asInstanceOf[Number].longValue).toList,
     o("createDate").asInstanceOf[DateTime],
-    o.getAsOrElse[Option[DateTime]]("lastUseDate", None))
+    o.getAsOrElse[DateTime]("lastUseDate", new DateTime))
 
   def taskStatistics(o: DBObject) = TaskStatistics(
     o("type").asInstanceOf[String],
