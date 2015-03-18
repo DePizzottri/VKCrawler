@@ -45,7 +45,7 @@ Collection for unprocessed raw data from crawler agents
     uid: int
     friends: current friends list (array of obj)
         {
-            id
+            uid
             city
         }
     firstName: string

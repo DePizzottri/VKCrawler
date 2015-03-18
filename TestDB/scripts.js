@@ -29,4 +29,31 @@ function dropAll() {
     db.tasks.drop();
     db.task_statistics.drop();
     db.friends_raw.drop();
+    db.friends_dynamic.drop();
+    db.friends_raw_tmp.drop();
 };
+
+function Init()
+{
+    db.first_man.insert("uid":NumberLong(2763114))
+}
+
+db.friends_raw.insert({
+    uid: new NumberLong(1),
+    friends:[{uid:NumberLong(2), city:2},{uid:NumberLong(3),city:3},{uid:NumberLong(4),city:4}],
+    firstName:"fn",
+    lastName:"ln",
+    birthday: new Date(),
+    city: 33,
+    processDate: new Date()
+});
+
+db.friends_list.insert({
+    uid: new NumberLong(1),
+    friends:[NumberLong(1), NumberLong(2), NumberLong(3)],
+    firstName:"a",
+    lastName:"b",
+    birthday: new Date(),
+    city: 11,
+    processDate: new Date()
+});
