@@ -52,21 +52,29 @@ void WEBGetTask::runTask() {
 			uri.addQueryParameter("types", param);
 		}
 
-		HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
-		session.sendRequest(req);
+		try
+		{
 
-		HTTPResponse resp;
-		auto& respStream = session.receiveResponse(resp);
+			HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
+			session.sendRequest(req);
 
-		poco_information_f1(app.logger(), "Task GET response status: %d", (int)resp.getStatus());
+			HTTPResponse resp;
+			auto& respStream = session.receiveResponse(resp);
 
-		std::string dataBuf;
+			poco_information_f1(app.logger(), "Task GET response status: %d", (int)resp.getStatus());
 
-		Poco::StreamCopier::copyToString(respStream, dataBuf);
+			std::string dataBuf;
 
-		m_jobQueue.enqueueNotification(
-			new CrawlJobNotification(dataBuf)
-		);
+			Poco::StreamCopier::copyToString(respStream, dataBuf);
+
+			m_jobQueue.enqueueNotification(
+				new CrawlJobNotification(dataBuf)
+				);
+		}
+		catch (Exception const& e)
+		{
+			poco_warning(app.logger(), "Error get new task " + e.displayText());
+		}
 	}
 
 	poco_information(app.logger(), "WEB Get task finished");

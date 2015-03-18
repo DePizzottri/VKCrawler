@@ -51,7 +51,9 @@ class App: public Poco::Util::ServerApplication {
 
 protected:
 	void initialize(Application & self) {
-        loadConfiguration("../../config/example.properties");
+		loadConfiguration("../../config/example.properties");
+
+		ServerApplication::initialize(self);
 
 		auto& pc = PluginsCache::instance();
 		//load plugins
@@ -79,9 +81,8 @@ protected:
 		//2 worker threads
 		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
 		for (int i = 0; i < workerNum; ++i)
-			m_manager.start(new WorkerTask(m_queue, 1));
+			m_manager.start(new WorkerTask(m_queue, i+1));
 
-        ServerApplication::initialize(self);
     }
 
     void uninitialize() {
