@@ -58,57 +58,69 @@ Poco::JSON::Array::Ptr friends_get(int uid)
 	using namespace Poco;
 	using namespace Poco::Net;
 
-	HTTPClientSession session("api.vk.com", 80);
-
-	URI uri("/method/friends.get");
-	uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
-	uri.addQueryParameter("fields", "city");
-
-	HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
-	session.sendRequest(req);
-
-	HTTPResponse resp;
-	auto& respStream = session.receiveResponse(resp);
-
-	poco_information_f1(app.logger(), "friends.get response status: %d", (int)resp.getStatus());
-
-	using namespace Poco::JSON;
-
-	//parse response
-	auto response = Poco::JSON::Parser().parse(respStream).extract<Object::Ptr>();
-
-	if (response->has("error"))
-	{
-		throw Poco::Exception("Error in friends.get request " + uri.toString());
-	}
-
-	//process response
-	auto usersArray = response->get("response").extract<Array::Ptr>();
 	Poco::JSON::Array::Ptr ret(new Poco::JSON::Array);
-	for (auto user : *usersArray)
+	const int count = 5000;
+	int offset = 0;
+	for (int i = 0; i < 2; ++i)
 	{
-		try
+		HTTPClientSession session("api.vk.com", 80);
+
+		URI uri("/method/friends.get");
+		uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
+		uri.addQueryParameter("fields", "city");
+		uri.addQueryParameter("offset", Poco::NumberFormatter::format(offset));
+		uri.addQueryParameter("count", Poco::NumberFormatter::format(count));
+
+		HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
+		session.sendRequest(req);
+
+		HTTPResponse resp;
+		auto& respStream = session.receiveResponse(resp);
+
+		poco_information_f1(app.logger(), "friends.get response status: %d", (int)resp.getStatus());
+
+		using namespace Poco::JSON;
+
+		//parse response
+		auto response = Poco::JSON::Parser().parse(respStream).extract<Object::Ptr>();
+
+		if (response->has("error"))
 		{
-			auto userObj = user.extract<Object::Ptr>();
-			auto fuid = userObj->get("uid").extract<Poco::Int32>();
-			//auto first_name = userObj->get("first_name").extract<string>();
-			//auto last_name = userObj->get("last_name").extract<string>();
-			auto city = userObj->get("city").extract<int>();
-
-			Object::Ptr friends(new Poco::JSON::Object);
-
-			friends->set("uid", fuid);
-			friends->set("city", city);
-
-			//Array::Ptr friends(new Array);
-			//friends->add(fuid);
-			//friends->add(city);
-
-			ret->add(friends);
+			throw Poco::Exception("Error in friends.get request " + uri.toString());
 		}
-		catch (Poco::Exception & e)
+
+		//process response
+		auto usersArray = response->get("response").extract<Array::Ptr>();
+
+		if (usersArray->size() == 0)
+			break;
+		offset += count;
+
+		for (auto user : *usersArray)
 		{
-			poco_warning(app.logger(), "Error parsing friends.get object: " + e.displayText());
+			try
+			{
+				auto userObj = user.extract<Object::Ptr>();
+				auto fuid = userObj->get("uid").extract<Poco::Int32>();
+				//auto first_name = userObj->get("first_name").extract<string>();
+				//auto last_name = userObj->get("last_name").extract<string>();
+				auto city = userObj->get("city").extract<int>();
+
+				Object::Ptr friends(new Poco::JSON::Object);
+
+				friends->set("uid", fuid);
+				friends->set("city", city);
+
+				//Array::Ptr friends(new Array);
+				//friends->add(fuid);
+				//friends->add(city);
+
+				ret->add(friends);
+			}
+			catch (Poco::Exception & e)
+			{
+				poco_warning(app.logger(), "Error parsing friends.get object: " + e.displayText());
+			}
 		}
 	}
 	
