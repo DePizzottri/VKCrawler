@@ -35,7 +35,7 @@ function dropAll() {
 
 function Init()
 {
-    db.first_man.insert("uid":NumberLong(2763114))
+    db.first_man.insert({"uid":NumberLong(2763114)})
 }
 
 db.friends_raw.insert({
