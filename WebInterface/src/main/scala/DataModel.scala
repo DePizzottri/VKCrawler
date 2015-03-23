@@ -12,6 +12,8 @@ case class TaskStatistics(
   lastUseDate: DateTime,
   processDate: DateTime)
 
+case class Birthday(day: Int, month: Int, year: Option[Int])
+
 case class FriendsRawFR(uid:Long, city:Int)
 
 case class FriendsRaw(
@@ -19,7 +21,7 @@ case class FriendsRaw(
   friends: List[FriendsRawFR],
   firstName: String,
   lastName: String,
-  birthday: DateTime,
+  birthday: Option[Birthday],
   city: Int,
   processDate: DateTime)
 
@@ -45,7 +47,7 @@ object DBConversion {
     o("friends").asInstanceOf[List[FriendsRawFR]],
     o("firstName").asInstanceOf[String],
     o("lastName").asInstanceOf[String],
-    o("birthday").asInstanceOf[DateTime],
+    o.getAs[Birthday]("birthday"),
     o("city").asInstanceOf[Int],
     o("processDate").asInstanceOf[DateTime])
 }
@@ -70,7 +72,11 @@ object Implicits {
           "friends" -> friends.map{case FriendsRawFR(uid, city) => MongoDBObject("uid" -> uid, "city" -> city)},
           "firstName" -> fn,
           "lastName" -> ln,
-          "birthday" -> birthday,
+          "birthday" -> (birthday match {
+                case Some(Birthday(d, m, Some(y))) => MongoDBObject("day"-> d, "month"-> m, "year"-> y)
+                case Some(Birthday(d, m, None)) => MongoDBObject("day"-> d, "month"-> m, "year"-> "null")
+                case None => None
+            }),
           "city" -> city,
           "processDate" -> processDate)
     }

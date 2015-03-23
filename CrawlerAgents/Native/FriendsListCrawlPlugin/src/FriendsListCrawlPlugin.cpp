@@ -18,6 +18,8 @@
 #include <Poco/JSON/Parser.h>
 #include <Poco/Timezone.h>
 
+#include <Poco/StringTokenizer.h>
+
 POCO_BEGIN_MANIFEST(AbstractPlugin)
 	POCO_EXPORT_CLASS(FriendsListCrawlPlugin)
 POCO_END_MANIFEST
@@ -49,6 +51,27 @@ Poco::UInt16 FriendsListCrawlPlugin::version() const
 bool FriendsListCrawlPlugin::doValidate(Poco::JSON::Object::Ptr const& obj) const
 {
 	return true;
+}
+
+Poco::JSON::Object::Ptr parseBirthday(std::string const& date)
+{
+	Poco::JSON::Object::Ptr bdate(new Poco::JSON::Object);
+
+	Poco::StringTokenizer tok(date, ".", Poco::StringTokenizer::TOK_TRIM | Poco::StringTokenizer::TOK_IGNORE_EMPTY);
+
+	if (tok.count() == 3)
+	{
+		bdate->set("day", Poco::NumberParser::parse(*(tok.begin())));
+		bdate->set("month", Poco::NumberParser::parse(*(tok.begin() + 1)));
+		bdate->set("year", Poco::NumberParser::parse(*(tok.begin() + 2)));
+	}
+	else if (tok.count() == 2)
+	{
+		bdate->set("day", Poco::NumberParser::parse(*(tok.begin())));
+		bdate->set("month", Poco::NumberParser::parse(*(tok.begin() + 1)));
+	}
+
+	return bdate;
 }
 
 Poco::JSON::Array::Ptr friends_get(int uid)
@@ -138,7 +161,7 @@ Poco::JSON::Object::Ptr getUserInfo(int uid)
 
 	URI uri("/method/users.get");
 	uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
-	uri.addQueryParameter("fields", "city");
+	uri.addQueryParameter("fields", "city,bdate");
 
 	HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
 	session.sendRequest(req);
@@ -197,6 +220,28 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
 			friends_raw->set("firstName", userInfo->get("first_name").extract<string>());
 			friends_raw->set("lastName", userInfo->get("last_name").extract<string>());
 			friends_raw->set("city", userInfo->get("city").extract<int>());
+			if (userInfo->has("bdate"))
+			{
+				try
+				{
+					friends_raw->set("birthday", parseBirthday(userInfo->get("bdate").extract<std::string>()));
+				}
+				catch (Poco::Exception const& e)
+				{
+					poco_warning(app.logger(), "Error set birthday " + e.displayText());
+					friends_raw->set("birthday", "null");
+				}
+			}
+			else
+			{
+				Poco::JSON::Object::Ptr bdate(new Poco::JSON::Object);
+
+				bdate->set("day", 0);
+				bdate->set("month", 0);
+				bdate->set("year", 0);
+				friends_raw->set("birthday", bdate);
+				//friends_raw->set("birthday", "null");
+			}
 		}
 		catch (Poco::Exception const& e)
 		{
@@ -204,7 +249,7 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
 			continue;
 		}
 
-		friends_raw->set("birthday", Poco::DateTimeFormatter::format(Timestamp(), Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
+		//friends_raw->set("birthday", Poco::DateTimeFormatter::format(Timestamp(), Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
 		friends_raw->set("processDate", Poco::DateTimeFormatter::format(Timestamp(), Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
 
 		friends->add(friends_raw);

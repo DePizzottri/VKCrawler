@@ -88,6 +88,7 @@ function FriendsListRefiner()
                     "uid":obj.uid,
                     "friendsAdded":newFriendsInt.filter(function(o) {return oldFriendsInt.indexOf(o) < 0}).map(function(o) {return new NumberLong(o)}),
                     "friendsDeleted":oldFriendsInt.filter(function(o) {return newFriendsInt.indexOf(o) < 0}).map(function(o) {return new NumberLong(o)}),
+                    "birthday":obj.birthday,
                     "processDate":obj.processDate
                 })
             }
