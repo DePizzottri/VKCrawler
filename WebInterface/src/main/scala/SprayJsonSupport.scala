@@ -37,7 +37,7 @@ object FriendsRawJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   import JodaDateTimeSupport._
   import BirthdayJsonSupport._
   import FriendsRawFRJsonSupport._
-  implicit val friendsRawFormat = jsonFormat7(FriendsRaw)
+  implicit val friendsRawFormat = jsonFormat8(FriendsRaw)
 }
 
 object TaskStatisticsJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {

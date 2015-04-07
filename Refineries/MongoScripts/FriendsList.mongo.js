@@ -99,7 +99,8 @@ function FriendsListRefiner()
                     "firstName":obj.firstName,
                     "lastName":obj.lastName,
                     "birthday":obj.birthday,
-                    "city":obj.city
+                    "city":obj.city,
+                    "interests":obj.interests
                 }}
             )
         }
