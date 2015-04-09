@@ -24,6 +24,7 @@ case class FriendsRaw(
   birthday: Option[Birthday],
   city: Int,
   interests: Option[String],
+  sex: Option[Int],
   processDate: DateTime)
 
 case class FriendsListTaskResult(
@@ -51,6 +52,7 @@ object DBConversion {
     o.getAs[Birthday]("birthday"),
     o("city").asInstanceOf[Int],
     o.getAs[String]("interests"),
+    o.getAs[Int]("sex"),
     o("processDate").asInstanceOf[DateTime])
 }
 
@@ -68,7 +70,7 @@ object Implicits {
 
   implicit class FriendsRawOps(val fr: FriendsRaw) {
     def toDB() = fr match {
-      case FriendsRaw(uid, friends, fn, ln, birthday, city, interests, processDate) =>
+      case FriendsRaw(uid, friends, fn, ln, birthday, city, interests, sex, processDate) =>
         MongoDBObject(
           "uid" -> uid,
           "friends" -> friends.map{case FriendsRawFR(uid, city) => MongoDBObject("uid" -> uid, "city" -> city)},
@@ -81,6 +83,7 @@ object Implicits {
             }),
           "city" -> city,
           "interests" -> interests,
+          "sex" -> sex,
           "processDate" -> processDate)
     }
   }

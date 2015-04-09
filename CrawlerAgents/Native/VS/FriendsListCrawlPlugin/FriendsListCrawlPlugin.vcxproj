@@ -41,11 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\lib\poco-1.6.0-all\Foundation\include;D:\lib\poco-1.6.0-all\JSON\include;D:\lib\poco-1.6.0-all\Net\include;D:\lib\poco-1.6.0-all\Util\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\lib\poco-1.6.0-all\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\lib\Poco_2013\poco\Foundation\include;D:\lib\Poco_2013\poco\JSON\include;D:\lib\Poco_2013\poco\Net\include;D:\lib\Poco_2013\poco\Util\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\lib\Poco_2013\poco\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>D:\lib\Poco_2013\poco\Foundation\include;D:\lib\Poco_2013\poco\Net\include;D:\lib\Poco_2013\poco\JSON\include;D:\lib\Poco_2013\poco\Util\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\lib\Poco_2013\poco\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -56,13 +58,15 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FRIENDSLISTCRAWLPLUGIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../FriendsListCrawlPlugin\include;../../Plugin/include</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).vcpl</OutputFile>
-      <AdditionalLibraryDirectories>D:\Code\VKCrawler\CrawlerAgents\Native\VS\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\Code\Git\VKCrawler\CrawlerAgents\Native\VS\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Plugin.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -75,12 +79,16 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FRIENDSLISTCRAWLPLUGIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../FriendsListCrawlPlugin\include;../../Plugin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Plugin.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Code\Git\VKCrawler\CrawlerAgents\Native\VS\Release</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(TargetName).vcpl</OutputFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

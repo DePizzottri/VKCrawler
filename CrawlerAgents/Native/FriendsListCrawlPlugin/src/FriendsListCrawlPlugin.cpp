@@ -161,7 +161,7 @@ Poco::JSON::Object::Ptr getUserInfo(int uid)
 
     URI uri("/method/users.get");
     uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
-    uri.addQueryParameter("fields", "city,bdate,interests");
+    uri.addQueryParameter("fields", "city,bdate,interests,sex");
 
     HTTPRequest req(HTTPRequest::HTTP_GET, uri.toString(), HTTPMessage::HTTP_1_1);
     session.sendRequest(req);
@@ -234,18 +234,24 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
             }
             else
             {
-                Poco::JSON::Object::Ptr bdate(new Poco::JSON::Object);
+/*                Poco::JSON::Object::Ptr bdate(new Poco::JSON::Object);
 
                 bdate->set("day", 0);
                 bdate->set("month", 0);
                 bdate->set("year", 0);
                 friends_raw->set("birthday", bdate);
                 //friends_raw->set("birthday", "null");
+*/
             }
 
             if(userInfo->has("interests") && userInfo->getValue<std::string> ("interests") != "")
             {
                 friends_raw->set("interests", userInfo->getValue<std::string> ("interests"));
+            }
+
+            if(userInfo->has("sex"))
+            {
+                friends_raw->set("sex", userInfo->getValue<int> ("sex"));
             }
         }
         catch (Poco::Exception const& e)

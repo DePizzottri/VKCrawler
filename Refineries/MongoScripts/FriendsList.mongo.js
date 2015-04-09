@@ -100,13 +100,14 @@ function FriendsListRefiner()
                     "lastName":obj.lastName,
                     "birthday":obj.birthday,
                     "city":obj.city,
-                    "interests":obj.interests
+                    "interests":obj.interests,
+                    "sex":obj.sex
                 }}
             )
         }
     )
     
-    print("Insert into dynamycs execute");
+    print("Insert into dynamics execute");
     bulkInsertDyn.execute();
     print("Update list execute")
     bulkUpdateList.execute();
