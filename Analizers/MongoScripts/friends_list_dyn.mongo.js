@@ -50,11 +50,12 @@ db.friends_dynamic.aggregate([
     {$project:{_id:1, uid:1, friendsAdded:1}},
     {$unwind:"$friendsAdded"},
     {$group:{_id:"$uid", addedSet:{$addToSet:"$friendsAdded"}, addedAll:{$push:"$friendsAdded"}}},
-    {$project:{_id:1, allsz:{$size:"$addedAll"}, setsz:{$size:"$addedAll"}}},
-    {$project:{_id:1, setsz:1, cmp:{$cmp:["$setsz", "$allsz"]}}},
+    {$project:{_id:1, allsz:{$size:"$addedAll"}, setsz:{$size:"$addedSet"}}},
+    {$project:{_id:1, setsz:1, allsz:1, cmp:{$cmp:["$setsz", "$allsz"]}}},
     {$match:{cmp:{$ne:0}}},
     {$sort:{setsz:-1}}
-])
+],
+{allowDiskUse : true})
 
 //most friended with names
 db.friends_list.aggregate([
