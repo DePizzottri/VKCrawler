@@ -19,6 +19,8 @@ import com.vkcrawler.DataModel.SprayJsonSupport._
 import com.vkcrawler.DataModel.SprayJsonSupport.FriendsListTaskResultJsonSupport._
 import com.vkcrawler.WEBInterface.MongoDB._
 
+import com.typesafe.config.ConfigFactory
+
 import scala.concurrent.duration._
 import scala.util.{Success, Failure}
 import scala.concurrent.Await
@@ -86,8 +88,9 @@ object Application extends App with SimpleRoutingApp {
       }
     }
   }
-  
-  startServer(interface = "0.0.0.0", port = 8080) {
+
+  val conf = ConfigFactory.load()  
+  startServer(interface = conf.getString("WEB.host"), port = conf.getInt("WEB.port")) {
     root ~ hello ~ getTask ~ postTask ~ stop
   }
 }
