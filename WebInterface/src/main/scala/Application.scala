@@ -1,16 +1,28 @@
 package com.vkcrawler.WEBInterface
 
 import akka.actor.ActorSystem
+import akka.actor.PoisonPill
+import akka.io.IO
+import akka.pattern.{ask, pipe}
+import akka.util.Timeout
+
+import spray.can.Http
 import spray.routing.SimpleRoutingApp
 import spray.routing.ValidationRejection
 import spray.json._
 import spray.http.StatusCodes
+
 import java.util.Date
+
 import com.vkcrawler.DataModel._
 import com.vkcrawler.DataModel.SprayJsonSupport._
 import com.vkcrawler.DataModel.SprayJsonSupport.FriendsListTaskResultJsonSupport._
-
 import com.vkcrawler.WEBInterface.MongoDB._
+
+import scala.concurrent.duration._
+import scala.util.{Success, Failure}
+import scala.concurrent.Await
+
 
 object Application extends App with SimpleRoutingApp {
 
@@ -59,7 +71,23 @@ object Application extends App with SimpleRoutingApp {
       }
     }
 
-  startServer(interface = "localhost", port = 8080) {
-    root ~ hello ~ getTask ~ postTask
+  lazy val stop = {
+    path("shutdown") {
+      get {
+        complete {
+          //graceful stop
+          implicit val timeout = Timeout(15 seconds)
+          implicit val executionContext = system.dispatcher    
+          Await.result(IO(Http) ? Http.CloseAll, 15 seconds) 
+          system.stop(IO(Http))
+          system.shutdown();
+          "Ok"
+        }
+      }
+    }
+  }
+  
+  startServer(interface = "0.0.0.0", port = 8080) {
+    root ~ hello ~ getTask ~ postTask ~ stop
   }
 }
