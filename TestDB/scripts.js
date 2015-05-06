@@ -5,6 +5,7 @@ function dropAll() {
     db.friends_raw.drop();
     db.friends_dynamic.drop();
     db.friends_raw_tmp.drop();
+    db.tasks_frequency.drop();
 };
 
 function init() {
@@ -12,6 +13,8 @@ function init() {
     db.first_man.insert({"uid":NumberLong(2763114)});
     db.first_man.insert({start:new Date()});
     db.friends_list.createIndex({uid:1});
+    
+    db.tasks_frequency.insert({"type":"friends_list", "freq":NumberLong(3*60*60*1000)}); //initially every 3 hours
 }
 
 function past(m) {

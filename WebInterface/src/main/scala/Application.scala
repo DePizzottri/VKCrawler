@@ -22,8 +22,9 @@ import com.vkcrawler.WEBInterface.MongoDB._
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
 import scala.concurrent.Await
+import scala.util.{Success, Failure}
+import scala.language.postfixOps
 
 
 object Application extends App with SimpleRoutingApp {

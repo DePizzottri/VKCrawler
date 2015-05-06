@@ -4,8 +4,9 @@ import com.mongodb.casbah.Imports._
 import com.typesafe.config.ConfigFactory
 import spray.json._
 import java.util.Date
-
 import com.vkcrawler.DataModel._
+import com.mongodb.casbah.commons.MongoDBObject
+import scala.util.Random
 
 object MongoDBSource {
   import com.mongodb.casbah.commons.conversions.scala._
@@ -18,13 +19,92 @@ object MongoDBSource {
 
   def getTask(types: Array[String]): Either[Task, JsObject] = {
     val tasks = db("tasks")
-    val optTask = tasks.findAndModify(
-      "type" $in types,
-      MongoDBObject("usecount" -> 1),
-      $inc("usecount" -> 1) ++ $set("lastUseDate" -> new Date))
+
+    /* 
+      db.tasks.aggregate([
+      {$match:{"type": {$in :["raw", "friends_list"]}}},
+      {$sort:{lastUseDate:1}},
+      {$project:{type:"$type", lud:{date:"$lastUseDate", id:"$_id"}}},
+      {$group:{_id:"$type", data:{$first:"$lud"}}},
+      {$project:{"_id":"$data.id", type:"$_id", diff:{$subtract: [new Date, "$data.date"]}, date:"$data.date"}}      
+    ])
+    */
+    val rawLastTasks = tasks.aggregate(
+      List(
+        MongoDBObject("$match" ->
+          MongoDBObject("type" ->
+            MongoDBObject("$in" -> types))),
+        MongoDBObject("$sort" ->
+          MongoDBObject("lastUseDate" -> 1)),
+        MongoDBObject("$project" ->
+          MongoDBObject(
+            "type" -> "$type",
+            "lud" -> MongoDBObject("date" -> "$lastUseDate", "id" -> "$_id"))),
+        MongoDBObject("$group" ->
+          MongoDBObject(
+            "_id" -> "$type", "data" -> MongoDBObject("$first" -> "$lud"))),
+        MongoDBObject("$project" ->
+          MongoDBObject(
+            "_id" -> "$data.id",
+            "type" -> "$_id",
+            "diff" -> MongoDBObject("$subtract" -> MongoDBList(new Date, "$data.date")),
+            "date" -> "$data.date"  
+          ))))
+    
+    //cache and convert
+    val lastTasks = rawLastTasks.results.toList.map { x => 
+      (x.as[ObjectId]("_id"), x.as[String]("type"), x.getAs[Long]("diff"), x.getAs[Date]("date"))      
+    }
+                
+    //get frequencies
+    //db.tasks_frequency.find({})
+    val rawFrequencies = db("tasks_frequency").find(
+      MongoDBObject(), 
+      MongoDBObject("_id" -> 0)    
+    )
+    
+    val frequencies = rawFrequencies.map { x => 
+      (x.as[String]("type"), x.as[Long]("freq"))
+    }.toMap
+
+    //filter expired
+    val expiredTasks = lastTasks.filter( t =>
+      t._3 match {
+        case Some(diff) => frequencies(t._2) < diff
+        case None => true
+      }       
+    )
+
+    //choose from random
+    val optTask =
+    (
+        if(expiredTasks.length != 0) //has expired
+        {
+          val n = Random.nextInt(expiredTasks.length)
+          Some(expiredTasks(n));
+        }
+        else if(lastTasks.length != 0)//has unexpired
+        {
+          val n = Random.nextInt(lastTasks.length)
+          Some(lastTasks(n))
+        }
+        else
+          None
+    )
 
     optTask match {
-      case Some(task) => Left(DBConversion.task(task))
+      case Some(task) => {
+        tasks.findAndModify(
+          MongoDBObject("_id" -> task._1),
+          //MongoDBObject("lastUseDate" -> new Date),
+          $set("lastUseDate" -> new Date)) 
+          match {
+            case Some(nTask) => Left(DBConversion.task(nTask))
+            case None => Right(
+              JsObject("error" ->
+                JsObject("description" -> JsString("Modify found task"))))
+          }
+      }
       case None => Right(
         JsObject("error" ->
           JsObject("description" -> JsString(s"""No tasks '${types.mkString(", ")}'"""))))
