@@ -1,6 +1,6 @@
 name := """FriendsListRefiner"""
 
-version := "0.0.0"
+version := "0.0.1"
 
 scalaVersion := "2.11.5"
 
@@ -16,4 +16,14 @@ libraryDependencies += "io.spray" %% "spray-http" % "1.3.1"
 
 libraryDependencies += "io.spray" %% "spray-routing" % "1.3.1"
 
+libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
 
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
+
+scalacOptions ++= Seq("-feature")
+
+Revolver.settings
+
+import AssemblyKeys._
+
+assemblySettings

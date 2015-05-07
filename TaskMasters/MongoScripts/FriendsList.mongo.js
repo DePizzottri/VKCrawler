@@ -49,7 +49,6 @@ function FriendsListTaskMaster()
             {
                 "type":"friends_list",
                 "data":uids,
-                "usecount": 0,
                 "createDate": new Date()
             }
         )
