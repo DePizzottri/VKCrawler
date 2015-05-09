@@ -12,14 +12,15 @@ object FriendsListRefinerRoutine {
 
   val mongoClient = MongoClient("localhost", 27017)
   val db = mongoClient("VK_test_2")
-  val friends_raw_tmp = getRandomCollection
 
   def run(log: LoggingAdapter) {
+    val friends_raw_tmp = getRandomCollection
     //println("Work on " + friends_raw_tmp)
     import com.mongodb.casbah.commons.conversions.scala._
     //find new users
     //collect all current users
-    val currentUsers = db("friends_list").distinct("uid")
+    //val currentUsers = db("friends_list").distinct("uid")
+    val currentUsers = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).map { obj => obj.as[Long]("uid") }.toList
 
     //if zero start from First man
     if (currentUsers.length == 0) {
@@ -32,12 +33,14 @@ object FriendsListRefinerRoutine {
       }
     }
 
+    log.info("Moving to " + friends_raw_tmp)
+    
     //move working set
     {
       val bulkInsert = db(friends_raw_tmp).initializeUnorderedBulkOperation
       val bulkRemove = db("friends_raw").initializeUnorderedBulkOperation
 
-      db("friends_raw").find().limit(5000).foreach { obj =>
+      db("friends_raw").find().limit(3000).foreach { obj =>
         val uid = obj.get("uid").asInstanceOf[Long]
         //db(friends_raw_tmp).insert(obj)
         bulkInsert.insert(obj)
@@ -63,25 +66,45 @@ object FriendsListRefinerRoutine {
     }
 
     //collect raw users
-    val raw_users_c = db(friends_raw_tmp).aggregate(
-      List(
-        MongoDBObject("$unwind" -> "$friends"),
-        MongoDBObject("$match" -> MongoDBObject("friends.city" -> 148)),
-        MongoDBObject("$group" -> MongoDBObject("_id" -> None, "friends" -> MongoDBObject("$addToSet" -> "$friends.uid")))))
+    val factor = 1000
+    val cnt = db(friends_raw_tmp).find().count()
+    val batches = 0 :: (1 to (cnt / factor) ).map{ x => x * factor}.toList
 
-    val raw_users = raw_users_c.results.toList.flatMap { obj =>
-      obj.get("friends").asInstanceOf[BasicDBList].map { x => x.asInstanceOf[Long] }
-    }
+    log.info("Aggregate")
+    val raw_users = (for(skip <- batches) yield {
+      val raw_users_c = db(friends_raw_tmp).aggregate(
+        List(
+          MongoDBObject("$skip" -> skip),
+          MongoDBObject("$limit" -> factor),
+          MongoDBObject("$unwind" -> "$friends"),
+          //MongoDBObject("$match" -> MongoDBObject("friends.city" -> 148)),
+          MongoDBObject("$group" -> MongoDBObject("_id" -> None, "friends" -> MongoDBObject("$addToSet" -> "$friends.uid")))))
 
-    //intersect and find new users
+      raw_users_c.results.toList.flatMap { obj =>
+        obj.get("friends").asInstanceOf[BasicDBList].map { x => x.asInstanceOf[Long] }
+      }
+    }).flatten.distinct
+
+    //diff and find new users
     val new_users = raw_users.diff(currentUsers)
 
     log.info(s"Finded ${new_users.length} new users")
 
     //insert new users
+    val newUsersInsert = db("friends_list").initializeUnorderedBulkOperation
     new_users.foreach { x =>
-      db("friends_list").insert(MongoDBObject("uid" -> x))
+      //db("friends_list").insert(MongoDBObject("uid" -> x))
+      newUsersInsert.insert(MongoDBObject("uid" -> x))
     }
+
+    try{
+      newUsersInsert.execute();
+    }
+    catch {
+      case e:IllegalStateException => None
+      case t: Throwable => t.printStackTrace() // TODO: handle error
+    }
+    log.info("New users inserted")
 
     val bulkInsertDyn = db("friends_dynamic").initializeUnorderedBulkOperation
     val bulkUpdateList = db("friends_list").initializeUnorderedBulkOperation
@@ -121,6 +144,7 @@ object FriendsListRefinerRoutine {
             "sex" -> rawObj.get("sex")))
 
     }
+    log.info("Copy finished")
     
     try
     {
@@ -138,6 +162,7 @@ object FriendsListRefinerRoutine {
       case e:IllegalStateException => None
       case t: Throwable => t.printStackTrace() // TODO: handle error
     }
+    log.info("BULK executed")
 
     db(friends_raw_tmp).drop()
   }
