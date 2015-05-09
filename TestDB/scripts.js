@@ -12,7 +12,7 @@ function init() {
     db.first_man.remove({});
     db.first_man.insert({"uid":NumberLong(2763114)});
     db.first_man.insert({start:new Date()});
-    db.friends_list.createIndex({uid:1});
+    db.friends_list.createIndex({uid:1}, {unique:true});
     
     db.tasks_frequency.insert({"type":"friends_list", "freq":NumberLong(3*60*60*1000)}); //initially every 3 hours
 }

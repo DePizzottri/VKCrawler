@@ -1,6 +1,12 @@
 function FriendsListTaskMaster()
 {  
-    var current_friends = db.friends_list.distinct("uid")
+    var start = new Date()
+
+    //var current_friends = db.friends_list.distinct("uid")
+    var current_friends = [];
+    db.friends_list.find({}, {_id:0, uid:1}).forEach(function(obj){
+        current_friends.push(obj.uid);
+    })
     
     if (current_friends.length == 0)
     {
@@ -32,7 +38,7 @@ function FriendsListTaskMaster()
     var acc = []
     for (var i = 0; i<new_users.length; ++i)
     {
-        if ((i+1) % 10 == 0)
+        if ((i+1) % 50 == 0)
         {
             data.push(acc)
             acc = []
@@ -53,4 +59,8 @@ function FriendsListTaskMaster()
             }
         )
     })
+
+    var finished = new Date - start
+
+    print("Working " + Math.round(finished/1000).toString() + "s")
 }
