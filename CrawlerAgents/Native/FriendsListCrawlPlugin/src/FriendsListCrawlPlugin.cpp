@@ -123,20 +123,28 @@ Poco::JSON::Array::Ptr friends_get(int uid)
         {
             try
             {
-                auto userObj = user.extract<Object::Ptr>();
-                auto fuid = userObj->get("uid").extract<Poco::Int32>();
-                //auto first_name = userObj->get("first_name").extract<string>();
-                //auto last_name = userObj->get("last_name").extract<string>();
-                auto city = userObj->get("city").extract<int>();
+				Object::Ptr friends(new Poco::JSON::Object);
+				auto userObj = user.extract<Object::Ptr>();
+				if (!userObj->has("uid"))
+				{
+					poco_warning(app.logger(), "No uid field");
+					continue;
+				}
+				else
+				{
+					auto fuid = userObj->get("uid").extract<Poco::Int32>();
+					friends->set("uid", fuid);
+				}
 
-                Object::Ptr friends(new Poco::JSON::Object);
-
-                friends->set("uid", fuid);
-                friends->set("city", city);
-
-                //Array::Ptr friends(new Array);
-                //friends->add(fuid);
-                //friends->add(city);
+				if (!userObj->has("city"))
+				{
+					//poco_warning(app.logger(), "No city field");
+					friends->set("city", -1);
+				}
+				else
+				{
+					auto city = userObj->get("city").extract<int>();
+				}
 
                 ret->add(friends);
             }
@@ -256,7 +264,7 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
         }
         catch (Poco::Exception const& e)
         {
-            poco_warning(app.logger(), e.displayText());
+            poco_warning(app.logger(), "Collect info " + e.displayText());
             continue;
         }
 

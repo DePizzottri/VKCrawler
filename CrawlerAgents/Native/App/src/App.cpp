@@ -78,7 +78,11 @@ protected:
 		//start working theards
 		m_manager.start(new WEBGetTask(m_queue));
 
-		//2 worker threads
+#ifdef PERFORMANCE_COUNT
+		poco_information(logger().get("perf"), "Perfomance counter start");
+#endif
+
+		//3 default worker threads
 		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
 		for (int i = 0; i < workerNum; ++i)
 			m_manager.start(new WorkerTask(m_queue, i+1));

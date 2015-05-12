@@ -16,6 +16,16 @@
 
 #include <Poco/StreamCopier.h>
 
+#ifdef PERFORMANCE_COUNT
+#include <atomic>
+#include <chrono>
+static std::atomic<int>   process_perf_time = 0;
+static std::atomic<int>         process_perf_count = 0;
+
+static std::atomic<int>   post_perf_time = 0;
+static std::atomic<int>         post_perf_count = 0;
+#endif
+
 WorkerTask::WorkerTask(Poco::NotificationQueue& queue, int n):
 	Task("WorkerTask " + Poco::NumberFormatter::format(n)),
 	m_jobQueue(queue)
@@ -59,11 +69,29 @@ void WorkerTask::runTask()
 			if (!pc.get(type)->isValid(obj))
 				throw Poco::RuntimeException("Task is not valid for plugin " + pc.get(type)->getName());
 
+#ifdef PERFORMANCE_COUNT
+			auto process_start = std::chrono::system_clock::now();
+#endif
 			auto ans = pc.get(type)->process(obj);
+#ifdef PERFORMANCE_COUNT
+			auto process_stop = std::chrono::system_clock::now();
+			process_perf_time += std::chrono::duration_cast<std::chrono::milliseconds>(process_stop - process_start).count();
+			process_perf_count++;
+			if (process_perf_count != 0 && process_perf_count % 10 == 0)
+				poco_information_f3(app.logger().get("perf"), "PROCESS: total: %d ms count: %d mean: %.2f ms", 
+					process_perf_time.load(), 
+					process_perf_count.load(),
+					(double)process_perf_time.load() / process_perf_count.load()
+				);
+
+#endif
 
 			//send back
 
 			using namespace Poco::Net;
+#ifdef PERFORMANCE_COUNT
+			auto post_start = std::chrono::system_clock::now();
+#endif
 			HTTPClientSession session(serverHost, serverPort);
 
 			HTTPRequest req(HTTPRequest::HTTP_POST, "/postTask", HTTPMessage::HTTP_1_1);
@@ -84,7 +112,20 @@ void WorkerTask::runTask()
 
 			std::string postAns;
 			Poco::StreamCopier::copyToString(respStream, postAns);
+#ifdef PERFORMANCE_COUNT
+			auto post_stop = std::chrono::system_clock::now();
+			post_perf_time += std::chrono::duration_cast<std::chrono::milliseconds>(post_stop - post_start).count();
+			post_perf_count++;
+			if (post_perf_count != 0 && post_perf_count % 10 == 0)
+				poco_information_f3(app.logger().get("perf"), "POST: total: %d ms count: %d mean: %.2f ms",
+				post_perf_time.load(),
+				post_perf_count.load(),
+				(double)post_perf_time.load() / post_perf_count.load()
+				);
+
+#endif
 			poco_information(app.logger(), "POST task: " + postAns);
+
 		}
 		catch (Poco::Exception& e)
 		{
