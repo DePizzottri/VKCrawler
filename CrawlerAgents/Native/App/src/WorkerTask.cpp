@@ -124,8 +124,10 @@ void WorkerTask::runTask()
 				);
 
 #endif
-			poco_information(app.logger(), "POST task: " + postAns);
-
+			if (resp.getStatus() == HTTPResponse::HTTP_OK)
+				poco_information(app.logger(), "POST task: " + postAns);
+			else
+				poco_warning(app.logger(), "POST task: " + postAns);
 		}
 		catch (Poco::Exception& e)
 		{
