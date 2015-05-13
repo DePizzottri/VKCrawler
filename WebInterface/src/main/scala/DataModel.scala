@@ -22,7 +22,7 @@ case class FriendsRaw(
   firstName: String,
   lastName: String,
   birthday: Option[Birthday],
-  city: Int,
+  city: Option[Int],
   interests: Option[String],
   sex: Option[Int],
   processDate: DateTime)
@@ -50,7 +50,7 @@ object DBConversion {
     o("firstName").asInstanceOf[String],
     o("lastName").asInstanceOf[String],
     o.getAs[Birthday]("birthday"),
-    o("city").asInstanceOf[Int],
+    o.getAs[Int]("city"),
     o.getAs[String]("interests"),
     o.getAs[Int]("sex"),
     o("processDate").asInstanceOf[DateTime])

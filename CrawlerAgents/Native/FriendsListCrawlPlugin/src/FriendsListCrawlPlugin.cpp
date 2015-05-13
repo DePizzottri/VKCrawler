@@ -144,6 +144,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
 				else
 				{
 					auto city = userObj->get("city").extract<int>();
+					friends->set("city", city);
 				}
 
                 ret->add(friends);
@@ -227,7 +228,8 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
             auto userInfo = getUserInfo(friendsIDs->getElement<int>(i));
             friends_raw->set("firstName", userInfo->get("first_name").extract<string>());
             friends_raw->set("lastName", userInfo->get("last_name").extract<string>());
-            friends_raw->set("city", userInfo->get("city").extract<int>());
+			if (userInfo->has("city"))
+				friends_raw->set("city", userInfo->get("city").extract<int>());
             if (userInfo->has("bdate"))
             {
                 try
