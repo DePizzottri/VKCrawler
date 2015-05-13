@@ -46,8 +46,10 @@ object Application extends App with SimpleRoutingApp {
         parameters("version".as[Int], "types".as[String]) { (version, types) =>
           types match {
             case "" => reject(ValidationRejection("""Parameter "types" can not be empty"""))
-            case _ => complete {
-              MongoDBSource.getTask(types.split(","))
+            case _ => detach() {
+              complete {
+                MongoDBSource.getTask(types.split(","))
+              }
             }
           }
         }
