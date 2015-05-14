@@ -19,11 +19,13 @@
 #ifdef PERFORMANCE_COUNT
 #include <atomic>
 #include <chrono>
-static std::atomic<int>   process_perf_time = 0;
+static std::atomic<int>			process_perf_time = 0;
 static std::atomic<int>         process_perf_count = 0;
 
-static std::atomic<int>   post_perf_time = 0;
+static std::atomic<int>			post_perf_time = 0;
 static std::atomic<int>         post_perf_count = 0;
+
+static std::atomic<int>			post_size = 0;
 #endif
 
 WorkerTask::WorkerTask(Poco::NotificationQueue& queue, int n):
@@ -105,7 +107,8 @@ void WorkerTask::runTask()
 			req.setContentLength(ss.str().length());
 			req.setContentType("application/json");
 			auto& reqStream = session.sendRequest(req);
-			reqStream << ss.str();
+			std::string postData = ss.str();
+			reqStream << postData;
 
 			HTTPResponse resp;
 			auto& respStream = session.receiveResponse(resp);
@@ -116,13 +119,16 @@ void WorkerTask::runTask()
 			auto post_stop = std::chrono::system_clock::now();
 			post_perf_time += std::chrono::duration_cast<std::chrono::milliseconds>(post_stop - post_start).count();
 			post_perf_count++;
-			if (post_perf_count != 0 && post_perf_count % 10 == 0)
+			post_size += postData.size();
+			if (post_perf_count != 0 && post_perf_count % 10 == 0) {
 				poco_information_f3(app.logger().get("perf"), "POST: total: %d ms count: %d mean: %.2f ms",
-				post_perf_time.load(),
-				post_perf_count.load(),
-				(double)post_perf_time.load() / post_perf_count.load()
-				);
+					post_perf_time.load(),
+					post_perf_count.load(),
+					(double)post_perf_time.load() / post_perf_count.load()
+					);
 
+				poco_information_f1(app.logger().get("perf"), "POST traffic: %.2f bytes", (double)post_size.load() / post_perf_count.load());
+			}
 #endif
 			if (resp.getStatus() == HTTPResponse::HTTP_OK)
 				poco_information(app.logger(), "POST task: " + postAns);

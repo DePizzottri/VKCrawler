@@ -84,6 +84,7 @@ protected:
 
 		//3 default worker threads
 		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
+		Poco::ThreadPool::defaultPool().addCapacity(workerNum - m_threadPool.capacity() + 10);
 		for (int i = 0; i < workerNum; ++i)
 			m_manager.start(new WorkerTask(m_queue, i+1));
 
