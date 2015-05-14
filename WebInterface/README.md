@@ -17,3 +17,5 @@ FriendsListTaskResult
     friends: [friends_raw]
 }
 ```
+
+task results go to the RabbitMQ
