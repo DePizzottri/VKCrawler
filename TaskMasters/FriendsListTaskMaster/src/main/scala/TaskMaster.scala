@@ -12,17 +12,19 @@ import com.mongodb.AggregationOptions.OutputMode
 object FriendsListTaskMasterRoutine {
   def getRandomCollection = Random.alphanumeric.take(20).mkString
   
-  val mongoClient = MongoClient("localhost", 27017)
-  val db = mongoClient("VK_test_2")
+  val mongoClient = MongoClient("192.168.1.9", 27017)
+  val db = mongoClient("VK_Piter")
 
   def run(log: LoggingAdapter) {
     import com.mongodb.casbah.commons.conversions.scala._
     //collect all current users
-    val current_users = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).map { obj => obj.as[Long]("uid") }.toList
+    /*
+    val current_users = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).map { obj => obj.as[Long]("uid") }.toSeq
 
     if (current_users.length == 0) {
       log.info("No users in friends_list")
     }
+    */
     
     val factor = 10000
     
@@ -45,10 +47,19 @@ object FriendsListTaskMasterRoutine {
       task_users_agg.flatMap { obj =>
         obj.get("friends").asInstanceOf[BasicDBList].map { x => x.asInstanceOf[Long] }
       }.toList
-    }).flatten.distinct
-    
+    }).flatten.toSet
+
+    log.info("Intersect and diff")
+    val new_users = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).flatMap { obj =>
+      val uid = obj.as[Long]("uid")
+      if(task_users.contains(uid))
+        Seq()
+      else
+        Seq(uid)
+    }.toSeq    
+
     //diff and find new users
-    val new_users = current_users.diff(task_users)
+    //val new_users = current_users.diff(task_users)
 
     log.info(s"Finded ${new_users.length} new users")
     

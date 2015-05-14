@@ -10,8 +10,8 @@ import akka.event.LoggingAdapter
 object FriendsListRefinerRoutine {
   def getRandomCollection = Random.alphanumeric.take(20).mkString
 
-  val mongoClient = MongoClient("localhost", 27017)
-  val db = mongoClient("VK_test_2")
+  val mongoClient = MongoClient("192.168.1.9", 27017)
+  val db = mongoClient("VK_Piter")
 
   def run(log: LoggingAdapter) {
     val friends_raw_tmp = getRandomCollection
@@ -20,10 +20,13 @@ object FriendsListRefinerRoutine {
     //find new users
     //collect all current users
     //val currentUsers = db("friends_list").distinct("uid")
-    val currentUsers = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).map { obj => obj.as[Long]("uid") }.toList
-
+    //val currentUsers = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).map { obj => obj.as[Long]("uid") }.toSeq
+    /*
+    
+    val curUsersCount = db("friends_list").count()
+    
     //if zero start from First man
-    if (currentUsers.length == 0) {
+    if (curUsersCount == 0) {
       db("first_man").findOne() match {
         case Some(fm) => {
           db("friends_list").insert(MongoDBObject("uid" -> fm.get("uid").asInstanceOf[Long]))
@@ -33,6 +36,7 @@ object FriendsListRefinerRoutine {
       }
     }
 
+    */
     log.info("Moving to " + friends_raw_tmp)
     
     //move working set
@@ -40,7 +44,7 @@ object FriendsListRefinerRoutine {
       val bulkInsert = db(friends_raw_tmp).initializeUnorderedBulkOperation
       val bulkRemove = db("friends_raw").initializeUnorderedBulkOperation
 
-      db("friends_raw").find().limit(3000).foreach { obj =>
+      db("friends_raw").find().limit(5000).foreach { obj =>
         val uid = obj.get("uid").asInstanceOf[Long]
         //db(friends_raw_tmp).insert(obj)
         bulkInsert.insert(obj)
@@ -64,6 +68,7 @@ object FriendsListRefinerRoutine {
         case t: Throwable => t.printStackTrace()
       }
     }
+    
 
     //collect raw users
     val factor = 1000
@@ -77,16 +82,25 @@ object FriendsListRefinerRoutine {
           MongoDBObject("$skip" -> skip),
           MongoDBObject("$limit" -> factor),
           MongoDBObject("$unwind" -> "$friends"),
-          //MongoDBObject("$match" -> MongoDBObject("friends.city" -> 148)),
+          MongoDBObject("$match" -> MongoDBObject("friends.city" -> 2)),
           MongoDBObject("$group" -> MongoDBObject("_id" -> None, "friends" -> MongoDBObject("$addToSet" -> "$friends.uid")))))
 
-      raw_users_c.results.toList.flatMap { obj =>
+      raw_users_c.results.flatMap { obj =>
         obj.get("friends").asInstanceOf[BasicDBList].map { x => x.asInstanceOf[Long] }
       }
-    }).flatten.distinct
+    }).flatten.toSet
+    
+    log.info("Intersect and diff")
+    val intersection = db("friends_list").find(MongoDBObject(), MongoDBObject("uid" -> true, "_id" -> false)).flatMap { obj =>
+      val uid = obj.as[Long]("uid")
+      if(raw_users.contains(uid))
+        Seq(uid)
+      else
+        Seq()
+    }.toSeq    
 
     //diff and find new users
-    val new_users = raw_users.diff(currentUsers)
+    val new_users = raw_users.toSeq.diff(intersection)
 
     log.info(s"Finded ${new_users.length} new users")
 
@@ -105,6 +119,7 @@ object FriendsListRefinerRoutine {
       case t: Throwable => t.printStackTrace() // TODO: handle error
     }
     log.info("New users inserted")
+    
 
     val bulkInsertDyn = db("friends_dynamic").initializeUnorderedBulkOperation
     val bulkUpdateList = db("friends_list").initializeUnorderedBulkOperation
@@ -165,5 +180,6 @@ object FriendsListRefinerRoutine {
     log.info("BULK executed")
 
     db(friends_raw_tmp).drop()
+    System.gc(); 
   }
 }
