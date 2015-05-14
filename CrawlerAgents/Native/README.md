@@ -23,4 +23,4 @@ Static library. Every plugin must inherit AbstractPlugin and link with this libr
 FriendsListCrawlPlugin
 ----------------------
 
-Dummy plugin yet.
+Plugin crawls static info and social graph
