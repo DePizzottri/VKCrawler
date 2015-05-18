@@ -1,9 +1,5 @@
 name := """FLNGTaskMaster"""
 
-version := "0.2.0"
-
-scalaVersion := "2.11.5"
-
 resolvers += "spray repo" at "http://repo.spray.io"
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
@@ -20,10 +16,6 @@ libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
 
+libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.2"
+
 scalacOptions ++= Seq("-feature")
-
-Revolver.settings
-
-import AssemblyKeys._
-
-assemblySettings

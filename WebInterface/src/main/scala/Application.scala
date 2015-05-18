@@ -26,10 +26,27 @@ import scala.concurrent.Await
 import scala.util.{Success, Failure}
 import scala.language.postfixOps
 
+import com.rabbitmq.client.ConnectionFactory
+import com.rabbitmq.client.MessageProperties
 
 object Application extends App with SimpleRoutingApp {
 
   implicit val system = ActorSystem("CrawlerWEBInterface-system")
+  
+  //connect ro rabbit
+
+  val conf = ConfigFactory.load()
+  
+  val EXCHANGE_NAME = "VKCrawler"
+  val ROUTING_KEY = "info_and_graph"
+  
+  //connect to RabbitMQ
+  val factory = new ConnectionFactory()
+  factory.setHost(conf.getString("RabbitMQ.host"))
+  val connection = factory.newConnection()
+  val channel = connection.createChannel()
+  
+  channel.exchangeDeclare(EXCHANGE_NAME, "direct")
 
   lazy val root =
     path("") {
@@ -60,7 +77,7 @@ object Application extends App with SimpleRoutingApp {
     path("postTask") {
       post {
         entity(as[FriendsListTaskResult]) { res =>
-          MongoDBSource.putTaskResult(res)
+          channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, MessageProperties.PERSISTENT_TEXT_PLAIN, res.toJson.compactPrint.getBytes());
           complete("Ok")
         }
       }
@@ -92,7 +109,7 @@ object Application extends App with SimpleRoutingApp {
     }
   }
 
-  val conf = ConfigFactory.load()  
+  //val conf = ConfigFactory.load()  
   startServer(interface = conf.getString("WEB.host"), port = conf.getInt("WEB.port")) {
     root ~ hello ~ getTask ~ postTask ~ stop
   }
