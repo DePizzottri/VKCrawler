@@ -18,4 +18,6 @@ libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
 
 libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.2"
 
+libraryDependencies += "net.debasishg" %% "redisclient" % "3.0"
+
 scalacOptions ++= Seq("-feature")

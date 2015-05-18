@@ -15,8 +15,10 @@ import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHe
 import scala.util.Random
 import java.util.Date
 
+import com.redis._
+
 object FLNGTaskMaster extends App {
-  def getRandomCollection = Random.alphanumeric.take(20).mkString
+  def getRandomCollection = Random.alphanumeric.take(5).mkString
 
   RegisterJodaTimeConversionHelpers()
   val conf = ConfigFactory.load()
@@ -39,21 +41,18 @@ object FLNGTaskMaster extends App {
   //connect to MongoDB
   val mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
   val db = mongoClient(conf.getString("MongoDB.database"))
-  val uidsCollection = "task_uids_tmp" + getRandomCollection
+  val uidsSet = "temp_user_ids" //+ getRandomCollection
 
-  db("tasks").aggregate(
-    List(
-      MongoDBObject("$match" -> MongoDBObject("type" -> "friends_list")),
-      MongoDBObject("$unwind" -> "$data"),
-      MongoDBObject("$group" -> MongoDBObject("_id" -> None, "uid" -> MongoDBObject("$addToSet" -> "$data"))),
-      MongoDBObject("$unwind" -> "$uid"),
-      MongoDBObject("$project" -> MongoDBObject("_id" -> "$uid")),
-      MongoDBObject("$out" -> uidsCollection)),
-    AggregationOptions(allowDiskUse = true))
+  //connect to redis
+  val redis = new RedisClient(conf.getString("Redis.host"), conf.getInt("Redis.port"))
 
-  //db(uidsCollection).createIndex(MongoDBObject("uid" -> true))
+  db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
+    obj.as[MongoDBList]("data").foreach( uid =>
+      redis.sadd(uidsSet, uid.asInstanceOf[Long])
+    )
+  )
 
-  println("Created temp collection " + uidsCollection)
+  println("Created temp set " + uidsSet)
 
   val consumer = new QueueingConsumer(channel);
   channel.basicConsume(QUEUE_NAME, false, consumer);
@@ -88,8 +87,10 @@ object FLNGTaskMaster extends App {
           if (x.city != 2)
             false
           else {
-            val result = db(uidsCollection).update(MongoDBObject("_id" -> x.uid), MongoDBObject(), upsert = true)
-            !result.isUpdateOfExisting()
+            redis.sadd(uidsSet, x.uid) match {
+              case Some(res) => res == 1l
+              case None => {println("None answer"); false}
+            }
           }
         }.map(_.uid) ++ cont
 
