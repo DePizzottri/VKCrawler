@@ -58,7 +58,6 @@ object FLNGTaskMaster extends App {
   channel.basicConsume(QUEUE_NAME, false, consumer);
 
   //continuously
-  var cont = List[Long]()
   var runTime = 0l
   var runCnt = 0l
   while (true) {
@@ -92,16 +91,11 @@ object FLNGTaskMaster extends App {
               case None => {println("None answer"); false}
             }
           }
-        }.map(_.uid) ++ cont
+        }.map(_.uid)
 
         val grouped = filteredFriends.zipWithIndex.groupBy { id => id._2 / 50 }
         
-        cont = grouped.find(_._2.size != 50) match {
-          case Some(elem) => elem._2.map(_._1)
-          case None => List[Long]()
-        }
-        
-        for (gid <- grouped; if gid._2.size == 50) {
+        for (gid <- grouped) {
           val bld = MongoDBList.newBuilder
 
           gid._2.foreach {
