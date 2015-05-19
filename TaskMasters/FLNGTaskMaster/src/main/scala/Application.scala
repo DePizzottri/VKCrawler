@@ -46,13 +46,17 @@ object FLNGTaskMaster extends App {
   //connect to redis
   val redis = new RedisClient(conf.getString("Redis.host"), conf.getInt("Redis.port"))
 
-  db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
-    obj.as[MongoDBList]("data").foreach( uid =>
-      redis.sadd(uidsSet, uid.asInstanceOf[Long])
+  if(args.length > 0 && args(0) == "secondary") {
+    println("Use created temp set " + uidsSet)
+  }
+  else {
+    db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
+      obj.as[MongoDBList]("data").foreach( uid =>
+        redis.sadd(uidsSet, uid.asInstanceOf[Long])
+      )
     )
-  )
-
-  println("Created temp set " + uidsSet)
+    println("Created temp set " + uidsSet)
+  }
 
   val consumer = new QueueingConsumer(channel);
   channel.basicConsume(QUEUE_NAME, false, consumer);
@@ -94,7 +98,8 @@ object FLNGTaskMaster extends App {
         }.map(_.uid)
 
         val grouped = filteredFriends.zipWithIndex.groupBy { id => id._2 / 50 }
-        
+
+        val bulkInsert = db("tasks").initializeUnorderedBulkOperation
         for (gid <- grouped) {
           val bld = MongoDBList.newBuilder
 
@@ -104,8 +109,9 @@ object FLNGTaskMaster extends App {
 
           val task = MongoDBObject("type" -> "friends_list", "createDate" -> new Date, "data" -> bld.result())
 
-          db("tasks").insert(task)
+          bulkInsert.insert(task)
         }
+        bulkInsert.execute()
       }
     }// process of new delivery end
 
