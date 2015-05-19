@@ -70,6 +70,8 @@ object InfoNGraphRefiner extends App {
     runCnt += 1l
     if(runCnt % 10 == 0 && runCnt != 0) {
       println(runTime/runCnt)
+      runTime = 0l
+      runCnt = 0l
     }
   }
 }

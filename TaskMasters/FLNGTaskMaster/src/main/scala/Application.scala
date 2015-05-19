@@ -50,12 +50,14 @@ object FLNGTaskMaster extends App {
     println("Use created temp set " + uidsSet)
   }
   else {
+    val s = System.currentTimeMillis
     db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
       obj.as[MongoDBList]("data").foreach( uid =>
         redis.sadd(uidsSet, uid.asInstanceOf[Long])
       )
     )
-    println("Created temp set " + uidsSet)
+    val e = System.currentTimeMillis
+    println("Created temp set " + uidsSet + s" in ${e-s}ms")
   }
 
   val consumer = new QueueingConsumer(channel);
@@ -64,15 +66,20 @@ object FLNGTaskMaster extends App {
   //continuously
   var runTime = 0l
   var runCnt = 0l
+  var filterTime = 0l
+  var insertTime = 0l
+  var parseTime = 0l
   while (true) {
     //receive message from rabbit
     val delivery = consumer.nextDelivery()
     val start = System.currentTimeMillis
+    val pstart = System.currentTimeMillis
     val message = new String(delivery.getBody())
 
     //parse
     import FriendsListTaskResultJsonSupport._
     val rawObj = message.parseJson.convertTo[FriendsListTaskResult]
+    parseTime += System.currentTimeMillis - pstart
 
     //put new users to tasks
     import com.vkcrawler.DataModel.Implicits._
@@ -86,6 +93,7 @@ object FLNGTaskMaster extends App {
         }
 
         //filter by city here
+        val fstart = System.currentTimeMillis
         val filteredFriends = allFriends.filter { x =>
           if (x.city != 2)
             false
@@ -96,9 +104,12 @@ object FLNGTaskMaster extends App {
             }
           }
         }.map(_.uid)
+        val fend = System.currentTimeMillis
+        filterTime += fend-fstart
 
         val grouped = filteredFriends.zipWithIndex.groupBy { id => id._2 / 50 }
 
+        val istart = System.currentTimeMillis
         val bulkInsert = db("tasks").initializeUnorderedBulkOperation
         for (gid <- grouped) {
           val bld = MongoDBList.newBuilder
@@ -112,6 +123,8 @@ object FLNGTaskMaster extends App {
           bulkInsert.insert(task)
         }
         bulkInsert.execute()
+        val iend = System.currentTimeMillis
+        insertTime += iend-istart
       }
     }// process of new delivery end
 
@@ -122,7 +135,16 @@ object FLNGTaskMaster extends App {
     runTime += end - start
     runCnt += 1l
     if(runCnt % 10 == 0 && runCnt != 0l) {
-      println(runTime/runCnt)
+      println(s"Parse time ${parseTime/runCnt}")
+      println(s"Filter time ${filterTime/runCnt}")
+      println(s"Insert time ${insertTime/runCnt}")
+      println(s"Total time ${runTime/runCnt}")
+      println()
+      runTime = 0l
+      runCnt = 0l
+      filterTime = 0l
+      insertTime = 0l
+      parseTime = 0l
     }
   }
 }
