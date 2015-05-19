@@ -77,7 +77,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FRIENDSLISTCRAWLPLUGIN_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FRIENDSLISTCRAWLPLUGIN_EXPORTS;PERFORMANCE_COUNT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>../../FriendsListCrawlPlugin\include;../../Plugin/include</AdditionalIncludeDirectories>
     </ClCompile>
@@ -97,13 +97,8 @@
     <ClInclude Include="..\..\Plugin\include\Plugin.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\FriendsListCrawlPlugin\src\FriendsListCrawlPlugin.cpp">
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../include/FriendsListCrawlPlugin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\FriendsListCrawlPlugin\src\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="..\..\FriendsListCrawlPlugin\src\FriendsListCrawlPlugin.cpp" />
+    <ClCompile Include="..\..\FriendsListCrawlPlugin\src\stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
