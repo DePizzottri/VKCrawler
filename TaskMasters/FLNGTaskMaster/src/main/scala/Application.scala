@@ -17,8 +17,65 @@ import java.util.Date
 
 import com.redis._
 
-object FLNGTaskMaster extends App {
+import scala.collection.mutable.HashSet
+
+class Used(db:MongoDB, val local:Boolean, val secondary:Boolean) {
+  //connect to redis
+  val conf = ConfigFactory.load()
   def getRandomCollection = Random.alphanumeric.take(5).mkString
+  lazy val redis = new RedisClient(conf.getString("Redis.host"), conf.getInt("Redis.port"))
+  val uidsSet = "temp_user_ids" //+ getRandomCollection
+  var used = HashSet.empty[Long]
+
+  if(local) {
+    val s = System.currentTimeMillis
+    db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
+      obj.as[MongoDBList]("data").foreach( uid =>
+        used += uid.asInstanceOf[Long]
+      )
+    )
+    val e = System.currentTimeMillis
+    println("Created local temp set " + uidsSet + s" in ${e-s}ms")
+  }
+  else {
+    if(secondary) {
+      println("Use created temp set " + uidsSet)
+    }
+    else {
+      val s = System.currentTimeMillis
+      db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
+        obj.as[MongoDBList]("data").foreach( uid =>
+          redis.sadd(uidsSet, uid.asInstanceOf[Long])
+        )
+      )
+      val e = System.currentTimeMillis
+      println("Created temp set " + uidsSet + s" in ${e-s}ms")
+    }
+  }
+  
+  def checkAndSet(uid: Long) = {
+    if(local)
+      if (used.contains(uid)) {
+        false 
+      }
+      else {
+        used += uid
+        true
+      }            
+    else {
+      redis.sadd(uidsSet, uid) match {
+        case Some(res) => res == 1l
+        case None => {println("None answer"); false}
+      }
+    }      
+  }
+}
+
+object FLNGTaskMaster extends App {
+  val params = args.toSet
+  if(params.contains("secondary") && params.contains("local")) {
+    throw new Exception("Local mode cannot be secondary")
+  }
 
   RegisterJodaTimeConversionHelpers()
   val conf = ConfigFactory.load()
@@ -41,24 +98,8 @@ object FLNGTaskMaster extends App {
   //connect to MongoDB
   val mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
   val db = mongoClient(conf.getString("MongoDB.database"))
-  val uidsSet = "temp_user_ids" //+ getRandomCollection
 
-  //connect to redis
-  val redis = new RedisClient(conf.getString("Redis.host"), conf.getInt("Redis.port"))
-
-  if(args.length > 0 && args(0) == "secondary") {
-    println("Use created temp set " + uidsSet)
-  }
-  else {
-    val s = System.currentTimeMillis
-    db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
-      obj.as[MongoDBList]("data").foreach( uid =>
-        redis.sadd(uidsSet, uid.asInstanceOf[Long])
-      )
-    )
-    val e = System.currentTimeMillis
-    println("Created temp set " + uidsSet + s" in ${e-s}ms")
-  }
+  val used = new Used(db, params.contains("local"), params.contains("secondary"))
 
   val consumer = new QueueingConsumer(channel);
   channel.basicConsume(QUEUE_NAME, false, consumer);
@@ -98,10 +139,7 @@ object FLNGTaskMaster extends App {
           if (x.city != 2)
             false
           else {
-            redis.sadd(uidsSet, x.uid) match {
-              case Some(res) => res == 1l
-              case None => {println("None answer"); false}
-            }
+            used.checkAndSet(x.uid)
           }
         }.map(_.uid)
         val fend = System.currentTimeMillis
@@ -122,7 +160,15 @@ object FLNGTaskMaster extends App {
 
           bulkInsert.insert(task)
         }
-        bulkInsert.execute()
+        
+        try {
+          bulkInsert.execute()
+        }
+        catch {
+          case e:IllegalStateException => None
+          case t: Throwable => t.printStackTrace()
+        }
+
         val iend = System.currentTimeMillis
         insertTime += iend-istart
       }
