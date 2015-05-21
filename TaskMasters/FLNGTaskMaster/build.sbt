@@ -20,4 +20,6 @@ libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.2"
 
 libraryDependencies += "net.debasishg" %% "redisclient" % "3.0"
 
+libraryDependencies += "redis.clients" % "jedis" % "2.6.2"
+
 scalacOptions ++= Seq("-feature")

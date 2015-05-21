@@ -14,60 +14,70 @@ import com.mongodb.casbah.commons.conversions.scala.RegisterJodaLocalDateTimeCon
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
 import scala.util.Random
 import java.util.Date
-
-import com.redis._
-
+import redis.clients.jedis._
 import scala.collection.mutable.HashSet
+//import com.redis.Redis
 
-class Used(db:MongoDB, val local:Boolean, val secondary:Boolean) {
-  //connect to redis
-  val conf = ConfigFactory.load()
-  def getRandomCollection = Random.alphanumeric.take(5).mkString
-  lazy val redis = new RedisClient(conf.getString("Redis.host"), conf.getInt("Redis.port"))
-  val uidsSet = "temp_user_ids" //+ getRandomCollection
+abstract class UsedBase(val db:MongoDB) {  
+  def filterAndAdd(s:Seq[Long]):Seq[Long]
+}
+
+class LocalUsed(db:MongoDB) extends UsedBase(db) {
   var used = HashSet.empty[Long]
 
-  if(local) {
-    val s = System.currentTimeMillis
-    db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
-      obj.as[MongoDBList]("data").foreach( uid =>
-        used += uid.asInstanceOf[Long]
-      )
+  val s = System.currentTimeMillis
+  db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
+    obj.as[MongoDBList]("data").foreach( uid =>
+      used += uid.asInstanceOf[Long]
     )
-    val e = System.currentTimeMillis
-    println("Created local temp set " + uidsSet + s" in ${e-s}ms")
+  )
+  val e = System.currentTimeMillis
+  println(s"Created local temp set in ${e-s}ms")  
+  
+  override def filterAndAdd(s: Seq[Long]) = {
+    s.filter { x =>
+      if (used.contains(x)) {
+        false
+      } else {
+        used += x
+        true
+      }
+    }
   }
-  else {
-    if(secondary) {
-      println("Use created temp set " + uidsSet)
-    }
-    else {
-      val s = System.currentTimeMillis
-      db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach( obj => 
-        obj.as[MongoDBList]("data").foreach( uid =>
-          redis.sadd(uidsSet, uid.asInstanceOf[Long])
-        )
-      )
-      val e = System.currentTimeMillis
-      println("Created temp set " + uidsSet + s" in ${e-s}ms")
-    }
+}
+
+class RedisUsed(db: MongoDB, val secondary: Boolean) extends UsedBase(db) {
+  private def getRandomCollection = Random.alphanumeric.take(5).mkString
+  val conf = ConfigFactory.load()
+  val jedis = new Jedis(conf.getString("Redis.host"), conf.getInt("Redis.port"))
+  val uidsSet = "temp_user_ids" //+ getRandomCollection
+
+  if (secondary) {
+    println("Use created temp set " + uidsSet)
+  } else {
+    val s = System.currentTimeMillis
+    val pipeline = jedis.pipelined()
+    var cnt = 0
+    db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach(obj =>
+      obj.as[MongoDBList]("data").foreach{uid =>
+        jedis.sadd(uidsSet, uid.asInstanceOf[Long].toString)
+        cnt +=1
+        if(cnt % 100000 == 0) {
+          println(s"Creating progress $cnt in ${System.currentTimeMillis - s}ms")
+        }
+      })
+    pipeline.sync()
+    val e = System.currentTimeMillis
+    println("Created temp set " + uidsSet + s" in ${e - s}ms")
   }
   
-  def checkAndSet(uid: Long) = {
-    if(local)
-      if (used.contains(uid)) {
-        false 
-      }
-      else {
-        used += uid
-        true
-      }            
-    else {
-      redis.sadd(uidsSet, uid) match {
-        case Some(res) => res == 1l
-        case None => {println("None answer"); false}
-      }
-    }      
+  override def filterAndAdd(s: Seq[Long]) = {
+    val pipeline = jedis.pipelined
+    s.foreach { x => pipeline.sadd(uidsSet, x.toString()) }
+    val result = pipeline.syncAndReturnAll()
+    s.zip(result.toArray).filter { x =>
+      x._2.asInstanceOf[Long] == 1
+    }.map(_._1)
   }
 }
 
@@ -99,7 +109,7 @@ object FLNGTaskMaster extends App {
   val mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
   val db = mongoClient(conf.getString("MongoDB.database"))
 
-  val used = new Used(db, params.contains("local"), params.contains("secondary"))
+  val used = if(params.contains("local")) new LocalUsed(db) else new RedisUsed(db, params.contains("secondary"))
 
   val consumer = new QueueingConsumer(channel);
   channel.basicConsume(QUEUE_NAME, false, consumer);
@@ -135,13 +145,9 @@ object FLNGTaskMaster extends App {
 
         //filter by city here
         val fstart = System.currentTimeMillis
-        val filteredFriends = allFriends.filter { x =>
-          if (x.city != 2)
-            false
-          else {
-            used.checkAndSet(x.uid)
-          }
-        }.map(_.uid)
+        val filteredFriends = used.filterAndAdd(allFriends.filter(_.city == 2).map(_.uid))
+        if(runCnt % 9 == 0 && runCnt != 0l)
+          println(s"Finded ${filteredFriends.length} new friends")
         val fend = System.currentTimeMillis
         filterTime += fend-fstart
 
