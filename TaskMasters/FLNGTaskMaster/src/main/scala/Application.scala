@@ -60,7 +60,7 @@ class RedisUsed(db: MongoDB, val secondary: Boolean) extends UsedBase(db) {
     var cnt = 0
     db("tasks").find(MongoDBObject("type" -> "friends_list"), MongoDBObject("_id" -> 0, "data" -> 1)).foreach(obj =>
       obj.as[MongoDBList]("data").foreach{uid =>
-        jedis.sadd(uidsSet, uid.asInstanceOf[Long].toString)
+        pipeline.sadd(uidsSet, uid.asInstanceOf[Long].toString)
         cnt +=1
         if(cnt % 100000 == 0) {
           println(s"Creating progress $cnt in ${System.currentTimeMillis - s}ms")
