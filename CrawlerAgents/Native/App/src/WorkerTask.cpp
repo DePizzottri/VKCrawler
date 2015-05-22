@@ -134,7 +134,7 @@ void WorkerTask::runTask()
 				poco_information(app.logger(), "POST task: " + postAns);
 			else
 				poco_warning(app.logger(), "POST task: " + postAns);
-		}
+		}	
 		catch (Poco::Exception& e)
 		{
 			poco_error(app.logger(), "Error process task: " + e.displayText());

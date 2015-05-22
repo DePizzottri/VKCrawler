@@ -50,54 +50,54 @@ using namespace std;
 class App: public Poco::Util::ServerApplication {
 
 protected:
-	void initialize(Application & self) {
-		loadConfiguration("../../config/example.properties");
+    void initialize(Application & self) {
+        loadConfiguration();
 
-		ServerApplication::initialize(self);
+        ServerApplication::initialize(self);
 
-		auto& pc = PluginsCache::instance();
-		//load plugins
-		for (Poco::DirectoryIterator d = Poco::DirectoryIterator(self.config().getString("application.dir")); d != Poco::DirectoryIterator(); ++d)
-		{
-			auto path = Poco::Path(d->path());
-			if (path.getExtension() == "vcpl")
-			{
-				try
-				{
-					pc.loadLibrary(path);
+        auto& pc = PluginsCache::instance();
+        //load plugins
+        for (Poco::DirectoryIterator d = Poco::DirectoryIterator(self.config().getString("application.dir")); d != Poco::DirectoryIterator(); ++d)
+        {
+            auto path = Poco::Path(d->path());
+            if (path.getExtension() == "vcpl")
+            {
+                try
+                {
+                    pc.loadLibrary(path);
 
-					poco_information(logger(), "Plugin " + path.getFileName() + " loaded");
-				}
-				catch (Poco::Exception const& e)
-				{
-					poco_warning(logger(), "Plugin " + path.getBaseName() + " loading error: " + e.displayText());
-				}
-			}
-		}
+                    poco_information(logger(), "Plugin " + path.getFileName() + " loaded");
+                }
+                catch (Poco::Exception const& e)
+                {
+                    poco_warning(logger(), "Plugin " + path.getBaseName() + " loading error: " + e.displayText());
+                }
+            }
+        }
 
-		//start working theards
-		m_manager.start(new WEBGetTask(m_queue));
+        //start working theards
+        m_manager.start(new WEBGetTask(m_queue));
 
 #ifdef PERFORMANCE_COUNT
-		poco_information(logger().get("perf"), "Perfomance counter start");
+        poco_information(logger().get("perf"), "Perfomance counter start");
 #endif
 
-		//3 default worker threads
-		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
-		Poco::ThreadPool::defaultPool().addCapacity(workerNum - m_threadPool.capacity() + 10);
-		for (int i = 0; i < workerNum; ++i)
-			m_manager.start(new WorkerTask(m_queue, i+1));
+        //3 default worker threads
+        const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
+        Poco::ThreadPool::defaultPool().addCapacity(workerNum - m_threadPool.capacity() + 10);
+        for (int i = 0; i < workerNum; ++i)
+            m_manager.start(new WorkerTask(m_queue, i+1));
 
     }
 
     void uninitialize() {
-		m_manager.cancelAll();
-		
-		const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
-		for (int i = 0; i < workerNum; ++i)
-			m_queue.enqueueNotification(new StopNotification);
+        m_manager.cancelAll();
+        
+        const Poco::UInt16 workerNum = config().getUInt("workerNum", 3);
+        for (int i = 0; i < workerNum; ++i)
+            m_queue.enqueueNotification(new StopNotification);
 
-		m_manager.joinAll();
+        m_manager.joinAll();
 
         ServerApplication::uninitialize();
     }
@@ -108,13 +108,13 @@ protected:
         waitForTerminationRequest();
         poco_information(logger(), "Stopped");
 
-		return Application::EXIT_OK;
+        return Application::EXIT_OK;
     }
 private:
 
-	Poco::TaskManager m_manager;
-	Poco::ThreadPool  m_threadPool;
-	Poco::NotificationQueue m_queue;
+    Poco::TaskManager m_manager;
+    Poco::ThreadPool  m_threadPool;
+    Poco::NotificationQueue m_queue;
 };
 
 POCO_SERVER_MAIN(App)

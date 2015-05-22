@@ -2,8 +2,7 @@ Native Crawler service
 ======================
 
 Depends on Poco 1.6+
-Visual Studio projects
-Builds with CMake (unavalible)
+Builds with CMake
 
 Native crawler agent have a plugin architecture: every task type implemented by external plugin (*.vcpl).
 Server meet info consist of types of presented plugin. Every plugin must implement processing of only one task type.
