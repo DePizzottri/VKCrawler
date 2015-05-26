@@ -24,6 +24,8 @@ object InfoNGraphRefiner extends App {
   //connect to RabbitMQ
   val factory = new ConnectionFactory()
   factory.setHost(conf.getString("RabbitMQ.host"))
+  factory.setUsername(conf.getString("RabbitMQ.username"))
+  factory.setPassword(conf.getString("RabbitMQ.password"))
   val connection = factory.newConnection()
   val channel = connection.createChannel()
   

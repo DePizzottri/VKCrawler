@@ -43,6 +43,8 @@ object Application extends App with SimpleRoutingApp {
   //connect to RabbitMQ
   val factory = new ConnectionFactory()
   factory.setHost(conf.getString("RabbitMQ.host"))
+  factory.setUsername(conf.getString("RabbitMQ.username"))
+  factory.setPassword(conf.getString("RabbitMQ.password"))
   val connection = factory.newConnection()
   val channel = connection.createChannel()
   
