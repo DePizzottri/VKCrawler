@@ -29,6 +29,7 @@ object MongoDBSource {
       {$project:{"_id":"$data.id", type:"$_id", diff:{$subtract: [new Date, "$data.date"]}, date:"$data.date"}}      
     ])
     */
+    /*    
     val rawLastTasks = tasks.aggregate(
       List(
         MongoDBObject("$match" ->
@@ -49,10 +50,15 @@ object MongoDBSource {
             "type" -> "$_id",
             "diff" -> MongoDBObject("$subtract" -> MongoDBList(new Date, "$data.date")),
             "date" -> "$data.date"  
-          ))))
+          ))
+      ),
+      AggregationOptions(allowDiskUse = true)
+    )
+    
+
     
     //cache and convert
-    val lastTasks = rawLastTasks.results.toList.map { x => 
+    val lastTasks = rawLastTasks.toSeq.map { x => 
       (x.as[ObjectId]("_id"), x.as[String]("type"), x.getAs[Long]("diff"), x.getAs[Date]("date"))      
     }
                 
@@ -91,7 +97,33 @@ object MongoDBSource {
         else
           None
     )
+    */
 
+    val candidates = tasks.find(MongoDBObject()).sort(MongoDBObject("lastUseDate" -> 1)).limit(1).map { x => 
+      (x.as[ObjectId]("_id"), x.as[String]("type"), x.getAs[Long]("diff"), x.getAs[Date]("date"))      
+    }
+
+    if(candidates.hasNext) {
+      val task = candidates.next
+
+        tasks.findAndModify(
+          MongoDBObject("_id" -> task._1),
+          //MongoDBObject("lastUseDate" -> new Date),
+          $set("lastUseDate" -> new Date)) 
+          match {
+            case Some(nTask) => Left(DBConversion.task(nTask))
+            case None => Right(
+              JsObject("error" ->
+                JsObject("description" -> JsString("Modify found task"))))
+          }
+    }
+    else {
+        Right(
+        JsObject("error" ->
+          JsObject("description" -> JsString(s"""No tasks '${types.mkString(", ")}'"""))))
+    }
+
+    /*
     optTask match {
       case Some(task) => {
         tasks.findAndModify(
@@ -109,6 +141,7 @@ object MongoDBSource {
         JsObject("error" ->
           JsObject("description" -> JsString(s"""No tasks '${types.mkString(", ")}'"""))))
     }
+    */
   }
 
   def putTaskResult(result: FriendsListTaskResult) = {
