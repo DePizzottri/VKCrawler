@@ -1,11 +1,11 @@
 name := """VKCrawler"""
-version := "0.2.0-proto"
+version := "0.3.0"
 scalaVersion := "2.11.5"
 
 lazy val common = Seq(
-    version := "0.2.0-proto",
-    scalaVersion := "2.11.5",
-    Revolver.settings
+  version := "0.3.0",
+  scalaVersion := "2.11.5",
+  Revolver.settings
 )
 
 lazy val root = (project in file(".")).aggregate(InfoNGraphRefiner, FLNGTaskMaster, Services, DataScheme)
