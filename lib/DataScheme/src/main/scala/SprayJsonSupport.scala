@@ -8,13 +8,14 @@ import org.joda.time.format.ISODateTimeFormat
 import spray.httpx.SprayJsonSupport
 import com.vkcrawler.DataModel._
 import java.util.Date
+import org.joda.time.DateTimeZone
 
 object JodaDateTimeSupport extends DefaultJsonProtocol {
   implicit object JodaDateTimeFormat extends RootJsonFormat[DateTime] {
     override def write(d: DateTime) = JsString(d.toString(ISODateTimeFormat.dateTime().withZoneUTC()))
 
     override def read(v: JsValue) = v match {
-      case JsString(s) => DateTime.parse(s, ISODateTimeFormat.dateTime().withZoneUTC())
+      case JsString(s) => DateTime.parse(s, ISODateTimeFormat.dateTime().withZone(DateTimeZone.getDefault))
       case _           => deserializationError("ISO8601 date time expected")
     }
   }
