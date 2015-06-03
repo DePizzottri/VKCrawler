@@ -25,7 +25,7 @@ trait TaskResultProcessor {
   def process(task: FriendsListTaskResult):Unit
 }
 
-trait RabbitTaskResultProcessor extends TaskResultProcessor {
+class RabbitTaskResultProcessor extends TaskResultProcessor {
   val conf = ConfigFactory.load()
 
   //connect to RabbitMQ
@@ -46,7 +46,21 @@ trait RabbitTaskResultProcessor extends TaskResultProcessor {
   }
 }
 
-trait ConnectionHandler extends HttpService with RabbitTaskResultProcessor {
+trait TaskGetter {
+  def getTask(types: Array[String]):Either[Task, JsObject]
+}
+
+class MongoDBTaskGetter extends TaskGetter {
+  override def getTask(types: Array[String]):Either[Task, JsObject] = {
+    MongoDBSource.getTask(types)
+  }
+}
+
+trait ConnectionHandler extends HttpService 
+{
+  val getter:TaskGetter 
+  val processor:TaskResultProcessor
+  
   lazy val route = root ~ hello ~ getTask ~ postTask //~ stop
 
   lazy val root =
@@ -66,7 +80,7 @@ trait ConnectionHandler extends HttpService with RabbitTaskResultProcessor {
             case "" => reject(ValidationRejection("""Parameter "types" can not be empty"""))
             case _ => detach() {
               complete {
-                MongoDBSource.getTask(types.split(","))
+                getter.getTask(types.split(","))
               }
             }
           }
@@ -78,7 +92,7 @@ trait ConnectionHandler extends HttpService with RabbitTaskResultProcessor {
     path("postTask") {
       post {
         entity(as[FriendsListTaskResult]) { res =>
-          process(res)
+          processor.process(res)
           complete("Ok")
         }
       }
@@ -112,6 +126,9 @@ trait ConnectionHandler extends HttpService with RabbitTaskResultProcessor {
 }
 
 class ConnectionHandlerActor extends Actor with ConnectionHandler {
+  val getter = new MongoDBTaskGetter() 
+  val processor = new RabbitTaskResultProcessor()
+
   def actorRefFactory = context
   override def receive = runRoute(route)
 }
