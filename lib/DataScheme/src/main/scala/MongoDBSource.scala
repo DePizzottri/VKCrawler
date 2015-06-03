@@ -16,9 +16,9 @@ object MongoDBSource {
   val config = ConfigFactory.load()
   val mongoClient = MongoClient(config.getString("MongoDB.host"), config.getInt("MongoDB.port"))
   val db = mongoClient(config.getString("MongoDB.database"))
+  val tasks = db("tasks")
 
   def getTask(types: Array[String]): Either[Task, JsObject] = {
-    val tasks = db("tasks")
 
     /* 
       db.tasks.aggregate([
@@ -99,30 +99,20 @@ object MongoDBSource {
     )
     */
 
-    val candidates = tasks.find(MongoDBObject()).sort(MongoDBObject("lastUseDate" -> 1)).limit(1).map { x => 
-      (x.as[ObjectId]("_id"), x.as[String]("type"), x.getAs[Long]("diff"), x.getAs[Date]("date"))      
-    }
-
-    if(candidates.hasNext) {
-      val task = candidates.next
-
-        tasks.findAndModify(
-          MongoDBObject("_id" -> task._1),
-          //MongoDBObject("lastUseDate" -> new Date),
-          $set("lastUseDate" -> new Date)) 
-          match {
-            case Some(nTask) => Left(DBConversion.task(nTask))
-            case None => Right(
-              JsObject("error" ->
-                JsObject("description" -> JsString("Modify found task"))))
-          }
-    }
-    else {
-        Right(
-        JsObject("error" ->
-          JsObject("description" -> JsString(s"""No tasks '${types.mkString(", ")}'"""))))
-    }
-
+    tasks.findAndModify(
+      query = MongoDBObject(),
+      fields = MongoDBObject(),
+      sort = MongoDBObject("lastUseDate" -> 1),
+      remove = false,
+      update = $set("lastUseDate" -> new Date),
+      returnNew = true,
+      upsert = false) match {
+        case Some(nTask) => Left(DBConversion.task(nTask))
+        case None => Right(
+          JsObject("error" ->
+            JsObject("description" -> JsString(s"""No tasks '${types.mkString(", ")}'"""))))
+      }
+        
     /*
     optTask match {
       case Some(task) => {
@@ -148,7 +138,7 @@ object MongoDBSource {
     result match {
       case FriendsListTaskResult(task, res) => {
         import Implicits._
-        db("task_statistics").insert(task.toDB())
+        //db("task_statistics").insert(task.toDB())
         val friends_raw = db("friends_raw")
         res.foreach { x => friends_raw.insert(x.toDB()) }
       }
