@@ -1,4 +1,4 @@
-package bfs.prototype1
+/*package bfs.prototype1
 
 import akka.actor.Actor
 import akka.actor.ActorRef
@@ -148,3 +148,4 @@ object Application extends App {
   
   bfs ! Broadcast(Start)
 }
+*/

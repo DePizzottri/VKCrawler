@@ -59,7 +59,7 @@ class World extends Actor {
     case GetNeighbours(v) => {
       //somehow get incident vertices
       if(!m.contains(v)) {
-        m += v -> (1 to 100).map(x => Random.nextInt(100000)).toSet.toSeq
+        m += v -> (1 to 300).map(x => Random.nextInt(1000000)).toSet.toSeq
       }
       sender ! Neighbours(v, m.getOrElse(v, Seq()))
     }
