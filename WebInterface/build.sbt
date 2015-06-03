@@ -6,33 +6,33 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 
-libraryDependencies += "io.spray" %% "spray-client" % "1.3.1"
 
-libraryDependencies += "io.spray" %% "spray-can" % "1.3.1"
+//spray 
+val sprayVersion = "1.3.1"
+libraryDependencies ++= Seq(
+  "io.spray" %% "spray-client" % sprayVersion,
+  "io.spray" %% "spray-can" % sprayVersion,
+  "io.spray" %% "spray-http" % sprayVersion,
+  "io.spray" %% "spray-httpx" % sprayVersion,
+  "io.spray" %% "spray-util" % sprayVersion,
+  "io.spray" %% "spray-routing" % sprayVersion,
+  "io.spray" %% "spray-testkit" % sprayVersion,
+  "io.spray" %% "spray-json" % "1.2.6"
+)
 
-libraryDependencies += "io.spray" %% "spray-http" % "1.3.1"
+//test
+libraryDependencies ++= Seq(
+  "org.specs2" %% "specs2-core" % "2.4.17" % "test",
+  "org.specs2" %%  "specs2-junit" % "2.4.17" % "test",
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+)
 
-libraryDependencies += "io.spray" %% "spray-httpx" % "1.3.1"
-
-libraryDependencies += "io.spray" %% "spray-util" % "1.3.1"
-
-libraryDependencies += "io.spray" %% "spray-routing" % "1.3.1"
-
-libraryDependencies += "io.spray" %% "spray-testkit" % "1.3.1"
-
-libraryDependencies += "io.spray" %% "spray-json" % "1.2.6"
-
-libraryDependencies += "org.specs2" %% "specs2-core" % "2.4.17" % "test"
-
-libraryDependencies += "org.specs2" %%  "specs2-junit" % "2.4.17" % "test"
-
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
-
+//other
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
 
-libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
-
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
+
+libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
 
 libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.2"
 

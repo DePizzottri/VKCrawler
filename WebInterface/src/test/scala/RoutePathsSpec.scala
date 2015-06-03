@@ -1,18 +1,20 @@
 package com.vkcrawler.WEBInterface
 
-import org.specs2.mutable.Specification
 import spray.testkit.Specs2RouteTest
 import spray.routing.HttpService
 import spray.http.StatusCodes._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import spray.http.StatusCodes
-import com.vkcrawler.DataModel._
 import spray.json._
 import spray.httpx.SprayJsonSupport._
 import spray.json.AdditionalFormats
+import spray.http.StatusCodes
+
+import org.specs2.mutable.Specification
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.joda.time.DateTime
+
 import com.vkcrawler.DataModel.SprayJsonSupport._
+import com.vkcrawler.DataModel._
 
 class StubTaskResultProcessor extends TaskResultProcessor{
   var lastProcessed:FriendsListTaskResult = null
@@ -43,7 +45,7 @@ import com.vkcrawler.DataModel.SprayJsonSupport.TaskJsonSupport._
 import spray.json.DefaultJsonProtocol._
 
 @RunWith(classOf[JUnitRunner])
-class RoutePathSpec extends Specification with Specs2RouteTest  with ConnectionHandler {
+class RoutePathSpec extends Specification with Specs2RouteTest with ConnectionHandler {
   def actorRefFactory = system // connect the DSL to the test ActorSystem
   
   val getter = new StubTaskGetter() 
@@ -72,8 +74,7 @@ class RoutePathSpec extends Specification with Specs2RouteTest  with ConnectionH
     "correctly pass task result to processor" in  {
     import com.vkcrawler.DataModel.SprayJsonSupport.FriendsListTaskResultJsonSupport._      
       Post("/postTask", StubTaskResultProcessor.result) ~> route ~> check {
-//        println(processor.lastProcessed.toString)
-//        println(StubTaskResultProcessor.result)
+        processor.lastProcessed.toString === StubTaskResultProcessor.result.toString &&
         handled && responseAs[String] == "Ok"
       }
     }
