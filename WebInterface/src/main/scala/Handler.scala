@@ -21,45 +21,62 @@ import spray.routing.HttpService
 import com.rabbitmq.client.AMQP.Channel
 import akka.util.Timeout
 
-trait TaskResultProcessor {
-  def process(task: FriendsListTaskResult):Unit
+trait TaskResultProcessorComponent {
+
+  val processor: TaskResultProcessor
+
+  trait TaskResultProcessor {
+    def process(task: FriendsListTaskResult): Unit
+  }
+
 }
 
-class RabbitTaskResultProcessor extends TaskResultProcessor {
-  val conf = ConfigFactory.load()
+trait RabbitTaskResultProcessorComponent extends TaskResultProcessorComponent {
 
-  //connect to RabbitMQ
-  val EXCHANGE_NAME = "VKCrawler"
-  val ROUTING_KEY = "info_and_graph"
+  override val processor = new RabbitTaskResultProcessor()
 
-  val factory = new ConnectionFactory()
-  factory.setHost(conf.getString("RabbitMQ.host"))
-  factory.setUsername(conf.getString("RabbitMQ.username"))
-  factory.setPassword(conf.getString("RabbitMQ.password"))
-  val connection = factory.newConnection()
-  val channel = connection.createChannel()
+  class RabbitTaskResultProcessor extends TaskResultProcessor {
+    val conf = ConfigFactory.load()
 
-  channel.exchangeDeclare(EXCHANGE_NAME, "direct")  
-  
-  override def process(task: FriendsListTaskResult) {
-    channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, MessageProperties.PERSISTENT_TEXT_PLAIN, task.toJson.compactPrint.getBytes());
+    //connect to RabbitMQ
+    val EXCHANGE_NAME = "VKCrawler"
+    val ROUTING_KEY = "info_and_graph"
+
+    val factory = new ConnectionFactory()
+    factory.setHost(conf.getString("RabbitMQ.host"))
+    factory.setUsername(conf.getString("RabbitMQ.username"))
+    factory.setPassword(conf.getString("RabbitMQ.password"))
+    val connection = factory.newConnection()
+    val channel = connection.createChannel()
+
+    channel.exchangeDeclare(EXCHANGE_NAME, "direct")
+
+    override def process(task: FriendsListTaskResult) {
+      channel.basicPublish(EXCHANGE_NAME, ROUTING_KEY, MessageProperties.PERSISTENT_TEXT_PLAIN, task.toJson.compactPrint.getBytes());
+    }
   }
 }
 
-trait TaskGetter {
-  def getTask(types: Array[String]):Either[Task, JsObject]
+trait TaskGetterComponent {
+  val getter: TaskGetter 
+
+  trait TaskGetter {
+    def getTask(types: Array[String]):Either[Task, JsObject]
+  }
 }
 
-class MongoDBTaskGetter extends TaskGetter {
-  override def getTask(types: Array[String]):Either[Task, JsObject] = {
-    MongoDBSource.getTask(types)
+trait MongoDBTaskGetterComponent extends TaskGetterComponent {
+  override val getter = new MongoDBTaskGetter()   
+  class MongoDBTaskGetter extends TaskGetter {
+    override def getTask(types: Array[String]):Either[Task, JsObject] = {
+      MongoDBSource.getTask(types)
+    }
   }
 }
 
 trait ConnectionHandler extends HttpService 
 {
-  val getter:TaskGetter 
-  val processor:TaskResultProcessor
+  this: TaskResultProcessorComponent with TaskGetterComponent =>
   
   lazy val route = root ~ hello ~ getTask ~ postTask //~ stop
 
@@ -125,10 +142,11 @@ trait ConnectionHandler extends HttpService
 //  }  
 }
 
-class ConnectionHandlerActor extends Actor with ConnectionHandler {
-  val getter = new MongoDBTaskGetter() 
-  val processor = new RabbitTaskResultProcessor()
-
+class ConnectionHandlerActor extends Actor
+  with RabbitTaskResultProcessorComponent
+  with MongoDBTaskGetterComponent  
+  with ConnectionHandler 
+{
   def actorRefFactory = context
   override def receive = runRoute(route)
 }

@@ -16,28 +16,36 @@ import org.joda.time.DateTime
 import com.vkcrawler.DataModel.SprayJsonSupport._
 import com.vkcrawler.DataModel._
 
-class StubTaskResultProcessor extends TaskResultProcessor{
-  var lastProcessed:FriendsListTaskResult = null
-  override def process(task: FriendsListTaskResult):Unit = {
-    lastProcessed = task
+trait StubTaskResultProcessorComponent extends TaskResultProcessorComponent { 
+  
+  override val processor = new StubTaskResultProcessor()
+
+  class StubTaskResultProcessor extends TaskResultProcessor {
+    var lastProcessed:FriendsListTaskResult = null
+    override def process(task: FriendsListTaskResult):Unit = {
+      lastProcessed = task
+    }
+  }
+  
+  object StubTaskResultProcessor {
+    val result = FriendsListTaskResult(
+        TaskStatistics("stub", new DateTime, new DateTime, new DateTime),
+        List()
+        )
   }
 }
 
-object StubTaskResultProcessor {
-  val result = FriendsListTaskResult(
-      TaskStatistics("stub", new DateTime, new DateTime, new DateTime),
-      List()
-      )
-}
-
-class StubTaskGetter extends TaskGetter {
-  override def getTask(types: Array[String]):Either[Task, JsObject] = {
-    Left(StubTaskGetter.t)
+trait StubTaskGetterComponent extends TaskGetterComponent {
+  val getter = new StubTaskGetter()    
+  class StubTaskGetter extends TaskGetter {
+    override def getTask(types: Array[String]):Either[Task, JsObject] = {
+      Left(StubTaskGetter.t)
+    }
   }
-}
-
-object StubTaskGetter {
-  val t = Task("", List(), new DateTime, new DateTime) 
+  
+  object StubTaskGetter {
+    val t = Task("", List(), new DateTime, new DateTime) 
+  }
 }
 
 
@@ -45,12 +53,13 @@ import com.vkcrawler.DataModel.SprayJsonSupport.TaskJsonSupport._
 import spray.json.DefaultJsonProtocol._
 
 @RunWith(classOf[JUnitRunner])
-class RoutePathSpec extends Specification with Specs2RouteTest with ConnectionHandler {
+class RoutePathSpec extends Specification with Specs2RouteTest 
+  with StubTaskGetterComponent
+  with StubTaskResultProcessorComponent
+  with ConnectionHandler 
+{
   def actorRefFactory = system // connect the DSL to the test ActorSystem
   
-  val getter = new StubTaskGetter() 
-  val processor = new StubTaskResultProcessor()
-
   "Service routes" should {
     "response with hello message on /hello page" in {
       Get("/hello") ~> route ~> check {        
