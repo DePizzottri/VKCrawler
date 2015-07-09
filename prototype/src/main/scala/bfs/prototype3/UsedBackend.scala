@@ -15,3 +15,9 @@ trait LocalUsedBackend extends UsedBackend {
     ret
   }
 }
+
+trait RedisUsedBackend extends UsedBackend {
+  def insertAndFilter(ids:Seq[VKID]) = {
+    throw new Exception("Not implemented")
+  }
+}
