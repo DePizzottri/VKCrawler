@@ -49,7 +49,7 @@ class ReliableQueueActor extends ReliableMessaging {
 
   import Queue._
 
-  override def persistenceId: String = "queue-actor-id-" + self.path
+  override def persistenceId: String = "queue-actor-id"
 
   override def processCommand: Receive = 
   {
@@ -68,6 +68,6 @@ class ReliableQueueActor extends ReliableMessaging {
 
   override def preStart(): Unit = {
     recoverQueue
+    super.preStart()
   }
-
 }

@@ -40,10 +40,11 @@ trait ReliableQueueBackend extends QueueBackend {
 trait ReliableMongoQueueBackend extends ReliableQueueBackend with MongoQueueBackend {
   def recoverQueue: Unit = {
     //reconnect
+    throw new Exception("Not implemented")
   }
 }
 
-trait RelibleLocalQueueBackend extends ReliableQueueBackend with LocalQueueBackend {
+trait ReliableLocalQueueBackend extends ReliableQueueBackend with LocalQueueBackend {
   def recoverQueue: Unit = {
     //no reliability?
   }
