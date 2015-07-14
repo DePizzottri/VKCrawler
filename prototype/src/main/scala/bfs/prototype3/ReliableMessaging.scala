@@ -30,13 +30,15 @@ import akka.persistence._
 trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with EnvelopReceive {
   import ReliableMessaging._
 
-  override def receiveCommand: Receive = withPostConfirmation(processCommand)
+  private[ReliableMessaging] def processConfirm: Receive = {
+    case evt: ALODEvt => persist(evt){ e=>updateStateMsg(e)}
+  }
+
+  override def receiveCommand: Receive = withPostConfirmation(processConfirm orElse processCommand)
   
   override def receiveRecover: Receive = withPostConfirmation(recover orElse processRecover)
 
   def processCommand: Receive
-
-  def processRecover: Receive = PartialFunction.empty
 
   def recover: Receive = {
     case evt: ALODEvt => updateStateMsg(evt)
@@ -51,6 +53,10 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
       deliver(dest, deliveryId => Envelop(deliveryId, msg))
  
     case Confirm(deliveryId) => confirmDelivery(deliveryId)
+  }
+
+  def processRecover: Receive = {
+    case msg:RecoveryCompleted => Unit
   }
 }
 
