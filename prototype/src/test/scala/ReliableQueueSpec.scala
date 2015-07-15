@@ -70,8 +70,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends TestKit(_system) with
       queue ! Envelop(4, Queue.Pop)
       expectMsg(Confirm(4))
       expectMsgClass(classOf[Envelop]).msg should be (Queue.Items(Seq(4)))
-    }
-    
+    }    
     
     "then redeliver unconfirmed messages" in {
       import Common._

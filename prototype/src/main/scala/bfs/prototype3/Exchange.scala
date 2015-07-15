@@ -3,6 +3,8 @@ package vkcrawler.bfs.prototype3
 import akka.actor._
 import akka.persistence._
 
+import com.typesafe.config.ConfigFactory
+
 import Common._
 
 
@@ -10,39 +12,39 @@ object Exchange {
   
 }
 
-class ExchangeActor extends Actor {
+class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Actor {
   this: ExchangeBackend =>
   
   init
 
   override def receive = {
     case msg@BFS.Friends(id, ids) => {
-      context.actorSelection("akka://bfs-system/user/bfs") ! msg
+      context.actorSelection(bfsActorPath) ! msg
       //publish
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      context.actorSelection("akka://bfs-system/user/queue") ! msg
+      context.actorSelection(queueActorPath) ! msg
       //publish
       publish("new_users", msg)
     }
   }
 }
 
-class ReliableExchangeActor extends ReliableMessaging {
+class ReliableExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends ReliableMessaging {
   this: ExchangeBackend =>
 
-  override def persistenceId: String = "exchange-actor-id-" + self.path
+  override def persistenceId: String = "exchange-actor-id"
 
   override def processCommand: Receive = 
   {
     case msg@BFS.Friends(id, ids) => {
-      deliver(msg, ActorPath.fromString("akka://bfs-system/user/bfs"))
+      deliver(msg, bfsActorPath)
       //publish
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      deliver(msg, ActorPath.fromString("akka://bfs-system/user/queue"))
+      deliver(msg, queueActorPath)
       //publish
       publish("new_users", msg)
     }
@@ -50,5 +52,6 @@ class ReliableExchangeActor extends ReliableMessaging {
 
   override def preStart(): Unit = {
     init
+    super.preStart()
   }
 }
