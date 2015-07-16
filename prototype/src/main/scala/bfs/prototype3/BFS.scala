@@ -16,20 +16,20 @@ object BFS {
   case class Friends(user:VKID, friends:Seq[VKID]) extends Cmd
   case class InsertAndFilter(user:VKID, friends:Seq[VKID]) extends Cmd
   case class NewUsers(users:Seq[VKID]) extends Cmd
-  case class Filtered(user:VKID, newFirends:Seq[VKID]) extends Cmd
+  case class Filtered(user:VKID, newFriends:Seq[VKID]) extends Cmd
 }
 
-class BFSActor extends Actor {
+class BFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) extends Actor {
   import BFS._
 
   def receive = {
     case Friends(u, f) => {
-      context.actorSelection("akka://bfs-system/user/graph") ! Friends(u, f)
-      context.actorSelection("akka://bfs-system/user/used") ! InsertAndFilter(u, f)
+      context.actorSelection(graph) ! Friends(u, f)
+      context.actorSelection(used) ! InsertAndFilter(u, f)
     }
-    
+
     case Filtered(u, f) => {
-      context.actorSelection("akka://bfs-system/user/exchange") ! NewUsers(f)
+      context.actorSelection(exchange) ! NewUsers(f)
     }
   }
 }
@@ -44,20 +44,20 @@ import akka.persistence._
 */
 
 
-class ReliableBFSActor extends ReliableMessaging {
+class ReliableBFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) extends ReliableMessaging {
   import BFS._
 
-  override def persistenceId: String = "bfs-actor-id-" + self.path
+  override def persistenceId: String = "bfs-actor-id"
 
-  override def processCommand: Receive = 
+  override def processCommand: Receive =
   {
     case Friends(u, f) => {
-      deliver(Friends(u, f), ActorPath.fromString("akka://bfs-system/user/graph"))
-      deliver(InsertAndFilter(u, f), ActorPath.fromString("akka://bfs-system/user/used"))
+      deliver(Friends(u, f), graph)
+      deliver(InsertAndFilter(u, f), used)
     }
 
     case Filtered(u, f) => {
-      deliver(NewUsers(f), ActorPath.fromString("akka://bfs-system/user/exchange"))
+      deliver(NewUsers(f), exchange)
     }
   }
 }
