@@ -1,8 +1,6 @@
+package vkcrawler.bfs.prototype3.test
+
 import akka.actor._
-import akka.testkit.{ TestActors, TestKit, ImplicitSender }
-import org.scalatest.WordSpecLike
-import org.scalatest.Matchers
-import org.scalatest.BeforeAndAfterAll
 import scala.concurrent.duration._
 
 import com.typesafe.config.ConfigFactory
@@ -11,7 +9,7 @@ import com.typesafe.config.ConfigFactory
 object PersistentUsedSpec{
   def config = ConfigFactory.parseString(
 /*
-    """ 
+    """
     akka.persistence.journal.leveldb.dir = "target/example/journal"
     akka.persistence.snapshot-store.local.dir = "target/example/snapshots"
     """
@@ -28,16 +26,11 @@ object PersistentUsedSpec{
 
   )
 }
- 
-class PersistentUsedSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll {
- 
+
+class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
+
   def this() = this(ActorSystem("PersistentUsedSpecSystem", PersistentUsedSpec.config))
- 
-  override def afterAll {
-    TestKit.shutdownActorSystem(system)
-  }
- 
+
   import vkcrawler.bfs.prototype3._
 
   "PersistantUsedActor " must {
@@ -48,7 +41,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends TestKit(_system) with Imp
       used ! Used.InsertAndFilter(Seq(13))
       expectMsg(Used.Filtered(Seq()))
     }
- 
+
     "filter some items" in {
       import Common._
       val used = system.actorOf(Props(new PersistentUsedActor))
@@ -68,7 +61,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends TestKit(_system) with Imp
 
       used ! Used.InsertAndFilter(Seq(33))
       expectMsg(Used.Filtered(Seq(33)))
-      
+
       used ! PoisonPill
 
       val used1 = system.actorOf(Props(new PersistentUsedActor))

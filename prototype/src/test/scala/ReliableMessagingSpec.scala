@@ -1,22 +1,12 @@
 package vkcrawler.bfs.prototype3.test
 
 import akka.actor._
-import akka.testkit.{TestActors, TestKit, ImplicitSender}
-import org.scalatest.WordSpecLike
-import org.scalatest.Matchers
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.Assertions._
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 
-class ReliableMessagingSpec(_system: ActorSystem) extends TestKit(_system) with ImplicitSender
-  with WordSpecLike with Matchers with BeforeAndAfterAll {
+class ReliableMessagingSpec(_system:ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("ReliableMessagingSystem", PersistanceSpecConfiguration.config))
-
-  override def afterAll {
-    TestKit.shutdownActorSystem(system)
-  }
 
   import vkcrawler.bfs.prototype3._
 
