@@ -26,5 +26,6 @@ class ReliablGraphActor extends Actor with EnvelopReceive {
 
   override def preStart(): Unit = {
     init
+    super.preStart()
   }
 }
