@@ -3,33 +3,9 @@ package vkcrawler.bfs.prototype3.test
 import akka.actor._
 import scala.concurrent.duration._
 
-import com.typesafe.config.ConfigFactory
-
-
-object PersistentUsedSpec{
-  def config = ConfigFactory.parseString(
-/*
-    """
-    akka.persistence.journal.leveldb.dir = "target/example/journal"
-    akka.persistence.snapshot-store.local.dir = "target/example/snapshots"
-    """
-*/
-
-    """
-    akka {
-      persistence {
-        journal.plugin = "inmemory-journal"
-        snapshot-store.plugin = "inmemory-snapshot-store"
-      }
-    }
-    """.stripMargin
-
-  )
-}
-
 class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
-  def this() = this(ActorSystem("PersistentUsedSpecSystem", PersistentUsedSpec.config))
+  def this() = this(ActorSystem("PersistentUsedSpecSystem", PersistanceSpecConfiguration.config))
 
   import vkcrawler.bfs.prototype3._
 
@@ -80,7 +56,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       }
       receiveN(num, 10.seconds)
       val dur = System.currentTimeMillis - start
-      println(s"Throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
+      println(s"Persistant used throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
     }
   }
 }

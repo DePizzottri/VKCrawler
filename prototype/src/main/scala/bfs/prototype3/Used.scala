@@ -22,7 +22,7 @@ class UsedActor extends Actor {
   import Used._
   override def receive = {
     case InsertAndFilter(ids) => sender ! Filtered(insertAndFilter(ids))
-  } 
+  }
 }
 
 import akka.persistence._
@@ -43,11 +43,11 @@ class PersistentUsedActor extends PersistentActor {
   override def receiveCommand: Receive = {
     case InsertAndFilter(ids) => persist(IncomeIds(ids)) { evt =>
       var ret = ids.filter{x => !used.contains(x)}
-      updateState(evt.ids) 
+      updateState(evt.ids)
       sender ! Filtered(ret)
     }
   }
-  
+
   override def receiveRecover: Receive = {
     case msg@IncomeIds(ids) => updateState(ids)
   }
@@ -57,14 +57,29 @@ class PersistentUsedActor extends PersistentActor {
   }
 }
 
+import akka.actor.OneForOneStrategy
+import akka.actor.SupervisorStrategy._
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 class ReliableUsedActor extends ReliableMessaging {
-  this: UsedBackend =>
+  this: ReliableUsedBackend =>
   import Used._
 
-  override def persistenceId: String = "used-actor-id-" + self.path
- 
-  override def processCommand: Receive = 
+  override val supervisorStrategy =
+    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
+      case _: java.net.ConnectException => Restart
+    }
+
+  override def persistenceId: String = "used-actor-id"
+
+  override def processCommand: Receive =
   {
     case InsertAndFilter(ids) => deliver(Filtered(insertAndFilter(ids)), sender.path)
+  }
+
+  override def preStart = {
+    init
+    super.preStart
   }
 }

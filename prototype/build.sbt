@@ -30,6 +30,8 @@ libraryDependencies ++= Seq(
   "org.aspectj" % "aspectjweaver" % "1.8.2" % "compile"
 )
 
+libraryDependencies += "redis.clients" % "jedis" % "2.7.2"
+
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
 
 resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven"

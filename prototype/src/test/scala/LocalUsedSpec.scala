@@ -43,7 +43,7 @@ class LocalUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       }
       receiveN(num, 10.seconds)
       val dur = System.currentTimeMillis - start
-      println(s"Throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
+      println(s"Local used throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
     }
 
   }
