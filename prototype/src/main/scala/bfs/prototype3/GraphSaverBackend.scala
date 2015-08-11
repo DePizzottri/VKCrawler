@@ -38,12 +38,24 @@ trait ReliableFileGraphSaverBackend extends ReliableGraphSaverBackend {
   }
 }
 
+import com.mongodb.casbah.MongoClient
+import com.mongodb.casbah.Imports._
+
 trait ReliableMongoDBGraphSaverBackend extends ReliableGraphSaverBackend {
+  this: akka.actor.Actor =>
+  val conf = context.system.settings.config
+
+  var mongoClient: MongoClient = null
+  var db:MongoDB = null
+
   def init(): Unit = {
-    throw new Exception("Not implemented")
+    mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
+    db = mongoClient(conf.getString("MongoDB.database"))
   }
 
+  val collection = conf.getString("MongoDB.friends")
+
   def saveFriends(id:VKID, ids:Seq[VKID]): Unit = {
-    throw new Exception("Not implemented")
+    db(collection).insert(MongoDBObject("id" -> id, "friends" -> ids))
   }
 }

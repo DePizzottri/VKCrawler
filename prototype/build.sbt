@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "redis.clients" % "jedis" % "2.7.2"
 libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.4"
+libraryDependencies += "org.mongodb" %% "casbah" % "2.8.2"
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
 
