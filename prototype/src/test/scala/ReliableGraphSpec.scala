@@ -14,7 +14,7 @@ class ReliableGraphSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import Common._
       import scala.collection.mutable.Map
       var fr = Map.empty[VKID, Seq[VKID]]
-      class DummyReliableGraphActor extends ReliablGraphActor with ReliableGraphSaverBackend {
+      class DummyReliableGraphActor extends ReliableGraphActor with ReliableGraphSaverBackend {
         def init():Unit = {
           fr.clear
         }

@@ -49,11 +49,11 @@ trait ReliableMongoDBGraphSaverBackend extends ReliableGraphSaverBackend {
   var db:MongoDB = null
 
   def init(): Unit = {
-    mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
-    db = mongoClient(conf.getString("MongoDB.database"))
+    mongoClient = MongoClient(conf.getString("graph.mongodb.host"), conf.getInt("graph.mongodb.port"))
+    db = mongoClient(conf.getString("graph.mongodb.database"))
   }
 
-  val collection = conf.getString("MongoDB.friends")
+  val collection = conf.getString("graph.mongodb.friends")
 
   def saveFriends(id:VKID, ids:Seq[VKID]): Unit = {
     db(collection).insert(MongoDBObject("id" -> id, "friends" -> ids))

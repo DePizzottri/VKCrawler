@@ -15,7 +15,7 @@ class GraphActor extends Actor {
   }
 }
 
-class ReliablGraphActor extends Actor with EnvelopReceive {
+class ReliableGraphActor extends Actor with EnvelopReceive {
   this: ReliableGraphSaverBackend =>
 
   override def receive = withPostConfirmation {
