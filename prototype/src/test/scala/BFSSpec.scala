@@ -21,15 +21,15 @@ class BFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import BFS._
 
       val friends = Friends(1, Seq[VKID](1, 2, 3))
-      val filtered = Filtered(1, Seq[VKID](4, 5, 6))
+      val filtered = Used.Filtered(Seq[VKID](4, 5, 6))
 
       bfs ! friends
 
       graph.expectMsg(friends)
-      used.expectMsg(InsertAndFilter(friends.user, friends.friends))
+      used.expectMsg(Used.InsertAndFilter(friends.friends))
 
       bfs ! filtered
-      exchange.expectMsg(NewUsers(filtered.newFriends))
+      exchange.expectMsg(NewUsers(filtered.ids))
     }
   }
 }

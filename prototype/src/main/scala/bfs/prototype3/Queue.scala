@@ -32,7 +32,7 @@ class QueueActor extends Actor {
       if(!items.isEmpty)
         sender ! Items(items)
       else
-        sender ! Empty  
+        sender ! Empty
     }
   }
 }
@@ -51,7 +51,7 @@ class ReliableQueueActor extends ReliableMessaging {
 
   override def persistenceId: String = "queue-actor-id"
 
-  override def processCommand: Receive = 
+  override def processCommand: Receive =
   {
     case Push(ids) => {
       push(ids)
@@ -59,7 +59,7 @@ class ReliableQueueActor extends ReliableMessaging {
     case Pop => {
       val items = popMany()
       if(!items.isEmpty) {
-        deliver(Items(items), sender.path)      
+        deliver(Items(items), sender.path)
       } else {
         deliver(Empty, sender.path)
       }

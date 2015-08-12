@@ -24,7 +24,7 @@ class ReliableBFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import ReliableMessaging._
 
       val friends = Friends(1, Seq[VKID](1, 2, 3))
-      val filtered = Filtered(1, Seq[VKID](4, 5, 6))
+      val filtered = Used.Filtered(Seq[VKID](4, 5, 6))
 
       bfs ! Envelop(1, friends)
       expectMsg(Confirm(1))
@@ -34,12 +34,12 @@ class ReliableBFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       bfs ! Confirm(e1.deliveryId)
 
       val e2 = used.expectMsgClass(classOf[Envelop])
-      e2.msg should be (InsertAndFilter(friends.user, friends.friends))
+      e2.msg should be (Used.InsertAndFilter(friends.friends))
       bfs ! Confirm(e2.deliveryId)
 
       bfs ! filtered
       val e3 = exchange.expectMsgClass(classOf[Envelop])
-      e3.msg should be (NewUsers(filtered.newFriends))
+      e3.msg should be (NewUsers(filtered.ids))
 
       exchange.expectMsgClass(classOf[Envelop]) should be (e3)
       bfs ! Confirm(e3.deliveryId)

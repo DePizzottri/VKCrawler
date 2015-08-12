@@ -96,7 +96,7 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val newUsers = BFS.NewUsers(Seq[VKID](2,3,4))
       exchange ! newUsers
       val eq = queue.expectMsgClass(classOf[Envelop])
-      eq.msg should be (newUsers)
+      eq.msg should be (Queue.Push(newUsers.users))
       exchange ! Confirm(eq.deliveryId)
 
       expectNoMsg(500.milliseconds)

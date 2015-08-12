@@ -9,12 +9,12 @@ import Common._
 
 
 object Exchange {
-  
+
 }
 
 class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Actor {
   this: ExchangeBackend =>
-  
+
   init
 
   override def receive = {
@@ -24,7 +24,7 @@ class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Ac
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      context.actorSelection(queueActorPath) ! msg
+      context.actorSelection(queueActorPath) ! Queue.Push(ids)
       //publish
       publish("new_users", msg)
     }
@@ -36,7 +36,7 @@ class ReliableExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) ex
 
   override def persistenceId: String = "exchange-actor-id"
 
-  override def processCommand: Receive = 
+  override def processCommand: Receive =
   {
     case msg@BFS.Friends(id, ids) => {
       deliver(msg, bfsActorPath)
@@ -44,7 +44,7 @@ class ReliableExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) ex
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      deliver(msg, queueActorPath)
+      deliver(Queue.Push(ids), queueActorPath)
       //publish
       publish("new_users", msg)
     }

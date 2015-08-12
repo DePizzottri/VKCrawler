@@ -14,9 +14,7 @@ import Common._
 object BFS {
   sealed trait Cmd
   case class Friends(user:VKID, friends:Seq[VKID]) extends Cmd
-  case class InsertAndFilter(user:VKID, friends:Seq[VKID]) extends Cmd
   case class NewUsers(users:Seq[VKID]) extends Cmd
-  case class Filtered(user:VKID, newFriends:Seq[VKID]) extends Cmd
 }
 
 class BFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) extends Actor {
@@ -25,10 +23,10 @@ class BFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) extends Acto
   def receive = {
     case Friends(u, f) => {
       context.actorSelection(graph) ! Friends(u, f)
-      context.actorSelection(used) ! InsertAndFilter(u, f)
+      context.actorSelection(used) ! Used.InsertAndFilter(f)
     }
 
-    case Filtered(u, f) => {
+    case Used.Filtered(f) => {
       context.actorSelection(exchange) ! NewUsers(f)
     }
   }
@@ -53,10 +51,10 @@ class ReliableBFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) exte
   {
     case Friends(u, f) => {
       deliver(Friends(u, f), graph)
-      deliver(InsertAndFilter(u, f), used)
+      deliver(Used.InsertAndFilter(f), used)
     }
 
-    case Filtered(u, f) => {
+    case Used.Filtered(f) => {
       deliver(NewUsers(f), exchange)
     }
   }
