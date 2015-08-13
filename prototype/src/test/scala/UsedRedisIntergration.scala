@@ -31,8 +31,9 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def cleanRedis = {
     //clean redis
-    val jedis = new Jedis("localhost", 6379)
-    val uidsSet = "__test_used"
+    val conf = system.settings.config
+    val jedis = new Jedis(conf.getString("used.redis.host"), conf.getInt("used.redis.port"))
+    val uidsSet = conf.getString("used.redis.setName")
     jedis.del(uidsSet)
   }
 
@@ -42,6 +43,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   override def afterAll = {
     cleanRedis
+    system.shutdown()
   }
 
   import vkcrawler.bfs.prototype3._

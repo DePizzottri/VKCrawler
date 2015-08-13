@@ -42,6 +42,7 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     var col = db(conf.getString("queue.mongodb.queue"))
 
     db.dropDatabase
+    system.shutdown()
   }
 
   import vkcrawler.bfs.prototype3._

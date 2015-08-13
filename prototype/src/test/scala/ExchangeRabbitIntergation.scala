@@ -26,23 +26,8 @@ object ExchangeRabbitMQSpec {
     }
     """.stripMargin
   )
-}
 
-class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
-
-  def this() = this(ActorSystem(
-    "ExchangeRabbitMQSpecSystem",
-    ExchangeRabbitMQSpec.config.withFallback(PersistanceSpecConfiguration.config)))
-
-  override def beforeAll = {
-  }
-
-  override def afterAll = {
-  }
-
-  import vkcrawler.bfs.prototype3._
-
-  class Consumer(routingKey:String) {
+  class Consumer(system:ActorSystem, routingKey:String) {
     val factory = new ConnectionFactory()
     val config = system.settings.config
     factory.setHost(config.getString("exchange.rabbitmq.host"))
@@ -54,10 +39,9 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
     val connection = factory.newConnection()
     val channel = connection.createChannel()
-    val QUEUE_NAME = "test_queue"+routingKey
 
     channel.exchangeDeclare(EXCHANGE_NAME, "direct")
-    channel.queueDeclare(QUEUE_NAME, false, true, true, null)
+    val QUEUE_NAME = channel.queueDeclare().getQueue()
     channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, routingKey);
     channel.basicQos(1);
 
@@ -71,7 +55,27 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       published += message
       channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     }
+
+    def finish {
+
+    }
   }
+}
+
+class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
+
+  def this() = this(ActorSystem(
+    "ExchangeRabbitMQSpecSystem",
+    ExchangeRabbitMQSpec.config.withFallback(PersistanceSpecConfiguration.config)))
+
+  override def beforeAll = {
+  }
+
+  override def afterAll = {
+    system.shutdown()
+  }
+
+  import vkcrawler.bfs.prototype3._
 
   "RabbitMQExchangeActor " must {
     "accept with confirm, both send to BFS and Queue and publish" in {
@@ -81,8 +85,8 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       class RabbitMQExchangeActor extends ReliableExchangeActor(bfs.ref.path, queue.ref.path) with RabbitMQExchangeBackend
       val exchange = system.actorOf(Props(new RabbitMQExchangeActor))
 
-      val friendsConsumer = new Consumer("friends")
-      val newUsersConsumer = new Consumer("new_users")
+      val friendsConsumer = new ExchangeRabbitMQSpec.Consumer(system, "friends")
+      val newUsersConsumer = new ExchangeRabbitMQSpec.Consumer(system, "new_users")
 
       import Common._
       val friends = BFS.Friends(1, Seq[VKID](2,3,4))

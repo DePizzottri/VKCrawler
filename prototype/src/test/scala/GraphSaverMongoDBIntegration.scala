@@ -34,6 +34,10 @@ class GraphSaverMongoDBIntegrationSpec(_system: ActorSystem) extends BFSTestSpec
       )
     )
 
+  override def afterAll {
+    system.shutdown()
+  }
+
 
   import vkcrawler.bfs.prototype3._
 

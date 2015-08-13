@@ -19,12 +19,15 @@ trait MongoQueueBackend extends QueueBackend {
   var col = db(conf.getString("queue.mongodb.queue"))
 
   def push(ids:Seq[VKID]) = {
-    val bulkInsert = col.initializeUnorderedBulkOperation
-    ids.foreach { id =>
-      bulkInsert.insert(MongoDBObject("id" -> id))
+    if(!ids.isEmpty) {
+      val bulkInsert = col.initializeUnorderedBulkOperation
+      ids.foreach { id =>
+        bulkInsert.insert(MongoDBObject("id" -> id))
+      }
+      bulkInsert.execute
     }
-    bulkInsert.execute
   }
+
 
   def popMany(): Seq[VKID] = {
     col.findOne() match {
