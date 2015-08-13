@@ -31,6 +31,19 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
       )
     )
 
+  override def afterAll {
+    //cleanup
+    import com.mongodb.casbah.MongoClient
+    import com.mongodb.casbah.Imports._
+
+    val conf = system.settings.config
+    var mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+    var db = mongoClient(conf.getString("queue.mongodb.database"))
+    var col = db(conf.getString("queue.mongodb.queue"))
+
+    db.dropDatabase
+  }
+
   import vkcrawler.bfs.prototype3._
 
   class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
