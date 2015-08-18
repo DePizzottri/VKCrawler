@@ -1,6 +1,6 @@
 package vkcrawler.bfs
 
-import Common._
+import vkcrawler.Common._
 
 trait QueueBackend {
   def push(ids:Seq[VKID]): Unit

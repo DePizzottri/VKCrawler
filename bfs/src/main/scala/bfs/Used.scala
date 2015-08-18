@@ -2,10 +2,9 @@ package vkcrawler.bfs
 
 import akka.actor._
 
-import Common._
+import vkcrawler.Common._
 
 object Used {
-  import Common._
   case class InsertAndFilter(ids:Seq[VKID])
   case class Filtered(ids:Seq[VKID])
 }
@@ -28,7 +27,6 @@ class UsedActor extends Actor {
 import akka.persistence._
 
 object PersistentUsedActor {
-  import Common._
   case class IncomeIds(ids: Seq[VKID])
 }
 

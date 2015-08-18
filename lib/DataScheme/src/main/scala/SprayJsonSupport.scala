@@ -1,4 +1,4 @@
-package com.vkcrawler.DataModel.SprayJsonSupport
+package vkcrawler.DataModel.SprayJsonSupport
 
 import spray.json._
 import spray.json.DefaultJsonProtocol
@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.format.ISODateTimeFormat
 import spray.httpx.SprayJsonSupport
-import com.vkcrawler.DataModel._
+import vkcrawler.DataModel._
 import java.util.Date
 
 object JodaDateTimeSupport extends DefaultJsonProtocol {
@@ -20,36 +20,28 @@ object JodaDateTimeSupport extends DefaultJsonProtocol {
   }
 }
 
-object TaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+object FriendsListTaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   import JodaDateTimeSupport._
-  implicit val taskFormat = jsonFormat4(Task)
+  implicit val taskFormat = jsonFormat2(FriendsListTask)
 }
 
-object FriendsRawFRJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-    implicit val friendsRawFRFormat = jsonFormat2(FriendsRawFR)    
+object UserIdWithCityJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+    implicit val friendsRawFRFormat = jsonFormat2(UserIdWithCity)
 }
 
 object BirthdayJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-    implicit val birthdayFormat = jsonFormat3(Birthday)    
+    implicit val birthdayFormat = jsonFormat3(Birthday)
 }
 
-object FriendsRawJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+object UserInfoJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   import JodaDateTimeSupport._
   import BirthdayJsonSupport._
-  import FriendsRawFRJsonSupport._
-  implicit val friendsRawFormat = jsonFormat9(FriendsRaw)
-}
-
-object TaskStatisticsJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  import JodaDateTimeSupport._
-  implicit val taskStatisticsFormat = jsonFormat4(TaskStatistics)
+  import UserIdWithCityJsonSupport._
+  implicit val friendsRawFormat = jsonFormat9(UserInfo)
 }
 
 object FriendsListTaskResultJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   import JodaDateTimeSupport._
-  import TaskStatisticsJsonSupport._
-  import FriendsRawJsonSupport._
-  implicit val frindesListTaskResultFormat = jsonFormat2(FriendsListTaskResult)
+  import UserInfoJsonSupport._
+  implicit val frindesListTaskResultFormat = jsonFormat1(FriendsListTaskResult)
 }
-
-

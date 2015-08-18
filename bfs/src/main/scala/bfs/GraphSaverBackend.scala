@@ -1,6 +1,6 @@
 package vkcrawler.bfs
 
-import Common._
+import vkcrawler.Common._
 
 import java.io.PrintWriter
 import java.io.File

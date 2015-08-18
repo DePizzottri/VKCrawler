@@ -5,11 +5,10 @@ import akka.persistence._
 
 import com.typesafe.config.ConfigFactory
 
-import Common._
-
+import vkcrawler.Common._
 
 object Exchange {
-
+  case class Publish(key:String, data:String)
 }
 
 class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Actor {
@@ -27,6 +26,10 @@ class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Ac
       context.actorSelection(queueActorPath) ! Queue.Push(ids)
       //publish
       publish("new_users", msg)
+    }
+
+    case Exchange.Publish(key, data) => {
+      publish(key, data)
     }
   }
 }
@@ -47,6 +50,9 @@ class ReliableExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) ex
       deliver(Queue.Push(ids), queueActorPath)
       //publish
       publish("new_users", msg)
+    }
+    case Exchange.Publish(key, data) => {
+      publish(key, data)
     }
   }
 

@@ -9,7 +9,7 @@ import akka.persistence._
   delivery guarantee -
 */
 
-import Common._
+import vkcrawler.Common._
 
 object BFS {
   sealed trait Cmd

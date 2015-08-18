@@ -3,7 +3,7 @@ package vkcrawler.bfs
 import akka.actor._
 import akka.persistence._
 
-import Common._
+import vkcrawler.Common._
 
 object Queue {
   case class Push(ids:Seq[VKID])
