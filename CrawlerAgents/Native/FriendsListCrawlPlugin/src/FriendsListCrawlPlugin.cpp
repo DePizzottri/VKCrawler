@@ -202,18 +202,11 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
     //extract task parameters and data
     const string type = obj->get("type").extract<string>();
     int dummyTzd = 0;
-    const Timestamp createDate = DateTimeParser::parse(DateTimeFormat::ISO8601_FRAC_FORMAT, obj->get("createDate").extract<string>(), dummyTzd).timestamp();
-    const Timestamp lastUseDate = DateTimeParser::parse(DateTimeFormat::ISO8601_FRAC_FORMAT, obj->get("lastUseDate").extract<string>(), dummyTzd).timestamp();
 
     auto friendsIDs = obj->get("data").extract<Poco::JSON::Array::Ptr>();
 
     //https://api.vk.com/method/friends.get?user_id=$uid&fields=city
 
-    Poco::JSON::Object::Ptr taskStatistics(new Poco::JSON::Object);
-
-    taskStatistics->set("type", type);
-    taskStatistics->set("createDate", Poco::DateTimeFormatter::format(createDate, Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
-    taskStatistics->set("lastUseDate", Poco::DateTimeFormatter::format(lastUseDate, Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
     Poco::JSON::Array::Ptr friends(new Poco::JSON::Array);
 
     //make requests
@@ -274,10 +267,7 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
         friends->add(friends_raw);
     }
 
-    taskStatistics->set("processDate", Poco::DateTimeFormatter::format(Timestamp(), Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
-
     Poco::JSON::Object::Ptr ret(new Poco::JSON::Object);
-    ret->set("task", taskStatistics);
     ret->set("friends", friends);
 
     return ret;

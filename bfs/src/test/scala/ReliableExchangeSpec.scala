@@ -23,7 +23,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("ExchangeSystem", ReliableExchangeSpec.config.withFallback(PersistanceSpecConfiguration.config)))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   assume(system.settings.config.getString("akka.persistence.at-least-once-delivery.redeliver-interval") === "1s")
 
@@ -32,7 +32,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val bfs = TestProbe()
       val queue = TestProbe()
 
-      import Common._
+      import vkcrawler.Common._
 
       class ReliableDummyExchange extends ReliableExchangeActor(bfs.ref.path, queue.ref.path) with DummyExchangeBackend
 
@@ -76,7 +76,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       class ReliableDummyExchange extends ReliableExchangeActor(bfs.ref.path, queue.ref.path) with MockExchangeBackend
       val exchange = system.actorOf(Props(new ReliableDummyExchange))
 
-      import Common._
+      import vkcrawler.Common._
       val friends = BFS.Friends(1, Seq[VKID](2,3,4))
       exchange ! friends
 

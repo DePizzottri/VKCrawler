@@ -11,6 +11,7 @@ import spray.routing.SimpleRoutingApp
 import spray.routing.ValidationRejection
 import spray.json._
 import spray.http.StatusCodes
+import spray.httpx.SprayJsonSupport._
 
 import java.util.Date
 
@@ -53,12 +54,18 @@ object Application extends App with SimpleRoutingApp {
             case "" => reject(ValidationRejection("""Parameter "types" can not be empty"""))
             case _ => detach() {
               //MongoDBSource.getTask(types.split(","))
+              import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
               implicit val timeout = Timeout(15 seconds)
-              val f = (queue ? vkcrawler.bfs.Queue.Pop).mapTo[vkcrawler.Common.VKID].map{
-                id => FriendsListTask("friends_list", Seq(id))
+              val f = (queue ? Queue.Pop).mapTo[ReliableMessaging.Envelop].map{
+                envlp =>
+                  queue ! ReliableMessaging.Confirm(envlp.deliveryId)
+                  envlp.msg match {
+                    case msg@Queue.Items(ids) => FriendsListTask("friends_list", ids)
+                    //case msg@Queue.Empty => """{error:"No task"}""".parseJson
+                  }
               }
-
+              import spray.httpx.SprayJsonSupport._
               complete(f)
             }
           }
@@ -71,8 +78,9 @@ object Application extends App with SimpleRoutingApp {
       post {
         entity(as[FriendsListTaskResult]) { res =>
           for(info <- res.friends) {
+            import UserInfoJsonSupport._
             exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 148).map(x => x.uid))
-            exchange ! vkcrawler.bfs.Exchange.Publish("user_info", res.toJson.compactPrint)
+            exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
           }
 
           complete("Ok")

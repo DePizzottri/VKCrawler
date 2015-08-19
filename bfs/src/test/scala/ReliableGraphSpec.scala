@@ -7,11 +7,11 @@ import akka.testkit.TestProbe
 class ReliableGraphSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem("ReliableGraphSpecSystem"))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "ReliableGraphActor " must {
     "Save friends list" in {
-      import Common._
+      import vkcrawler.Common._
       import scala.collection.mutable.Map
       var fr = Map.empty[VKID, Seq[VKID]]
       class DummyReliableGraphActor extends ReliableGraphActor with ReliableGraphSaverBackend {

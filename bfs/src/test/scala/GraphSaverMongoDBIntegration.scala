@@ -39,11 +39,11 @@ class GraphSaverMongoDBIntegrationSpec(_system: ActorSystem) extends BFSTestSpec
   }
 
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "GraphSaverMongoDBActor " must {
     "Save friends list" in {
-      import Common._
+      import vkcrawler.Common._
 
       class GraphSaverMongoDBActor extends ReliableGraphActor with ReliableMongoDBGraphSaverBackend
 

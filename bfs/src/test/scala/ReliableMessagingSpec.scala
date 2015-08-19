@@ -8,7 +8,7 @@ class ReliableMessagingSpec(_system:ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("ReliableMessagingSystem", PersistanceSpecConfiguration.config))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   case class TestMsg(data:String)
 

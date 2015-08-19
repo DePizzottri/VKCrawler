@@ -8,10 +8,8 @@ lazy val common = Seq(
 
 lazy val root = (project in file(".")).aggregate(DataScheme, WEBInterface, BFS)
 
-lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*).settings(assemblySettings)
+lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*)
 
-lazy val BFS = (project in file("BFS")).settings(common: _*).settings(assemblySettings).dependsOn(DataScheme)
+lazy val BFS = (project in file("BFS")).settings(common: _*).dependsOn(DataScheme)
 
-lazy val WEBInterface = (project in file("WEBInterface")).settings(common: _*).settings(assemblySettings).dependsOn(DataScheme, BFS)
-
-import AssemblyKeys._
+lazy val WEBInterface = (project in file("WEBInterface")).settings(common: _*).dependsOn(DataScheme, BFS)

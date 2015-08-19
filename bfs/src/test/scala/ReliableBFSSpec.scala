@@ -7,7 +7,7 @@ import akka.testkit.TestProbe
 class ReliableBFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem("ReliableBFSSpecSystem", PersistanceSpecConfiguration.config))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "ReliableBFS actor" must {
     "route Friends and NewUsers messages" in {
@@ -19,7 +19,7 @@ class ReliableBFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
         override def redeliverInterval = 1.seconds
       }))
 
-      import Common._
+      import vkcrawler.Common._
       import BFS._
       import ReliableMessaging._
 

@@ -7,7 +7,7 @@ class LocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("QueueSpecSystem"))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   class LocalQueueActor extends QueueActor with LocalQueueBackend
 
@@ -19,7 +19,7 @@ class LocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "preserve queue order" in {
-      import Common._
+      import vkcrawler.Common._
       val queue = system.actorOf(Props(new LocalQueueActor))
       val ins = Seq[VKID](1, 2, 3, 4)
       queue ! Queue.Push(ins)

@@ -45,7 +45,7 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     system.shutdown()
   }
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
 
@@ -63,7 +63,7 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     }
 
     "preserve queue order" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
       val queue = system.actorOf(Props(new QueueMongoDBActor))
       val ins = Seq[VKID](1)

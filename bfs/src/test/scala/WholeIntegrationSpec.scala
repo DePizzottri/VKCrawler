@@ -43,7 +43,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     )
   ))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   override def afterAll {
     //cleanup
@@ -70,7 +70,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   "All integrated BFS actors " must {
     "process simple graph " in {
-      import Common._
+      import vkcrawler.Common._
 
       //creating
       class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
@@ -109,7 +109,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       //start
       class Crawler extends Actor with ReliableMessaging {
-        import Common._
+        import vkcrawler.Common._
 
         import scala.concurrent.ExecutionContext.Implicits.global
         system.scheduler.schedule(20.milliseconds, 20.milliseconds, self, "Run")

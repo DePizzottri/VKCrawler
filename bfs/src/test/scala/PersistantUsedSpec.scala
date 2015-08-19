@@ -7,7 +7,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("PersistentUsedSpecSystem", PersistanceSpecConfiguration.config))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "PersistantUsedActor " must {
     "insert and then filter same item" in {
@@ -19,7 +19,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "filter some items" in {
-      import Common._
+      import vkcrawler.Common._
       val used = system.actorOf(Props(new PersistentUsedActor))
       val seq1 = Seq[VKID](1, 2, 3, 4)
       val seq2 = Seq[VKID](3, 4, 5)
@@ -32,7 +32,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "persist messages after dying" in {
-      import Common._
+      import vkcrawler.Common._
       val used = system.actorOf(Props(new PersistentUsedActor))
 
       used ! Used.InsertAndFilter(Seq(33))
@@ -46,7 +46,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "have some throughput" in {
-      import Common._
+      import vkcrawler.Common._
       val used = system.actorOf(Props(new PersistentUsedActor))
       val start = System.currentTimeMillis
       val num = 10000

@@ -46,7 +46,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     system.shutdown()
   }
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
 
@@ -67,7 +67,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "filter some items" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
 
       val used = system.actorOf(Props(new JedisUsedActor))
@@ -86,7 +86,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "redeliver messages after dying" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
 
       val used = system.actorOf(Props(new JedisUsedActor))
@@ -104,7 +104,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     }
 
     "have some throughput" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
 
       val used = system.actorOf(Props(new JedisUsedActor))

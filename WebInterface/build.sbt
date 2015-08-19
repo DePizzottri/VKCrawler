@@ -24,6 +24,15 @@ libraryDependencies += "io.spray" %%  "spray-json" % "1.2.6"
 
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % akkaVersion
 
+libraryDependencies += "com.typesafe.akka" %% "akka-remote" % akkaVersion
+
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
 
 scalacOptions ++= Seq("-feature")
+
+assemblyMergeStrategy in assembly := {
+  case "application.conf" => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}

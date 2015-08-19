@@ -75,7 +75,7 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     system.shutdown()
   }
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "RabbitMQExchangeActor " must {
     "accept with confirm, both send to BFS and Queue and publish" in {
@@ -88,7 +88,7 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val friendsConsumer = new ExchangeRabbitMQSpec.Consumer(system, "friends")
       val newUsersConsumer = new ExchangeRabbitMQSpec.Consumer(system, "new_users")
 
-      import Common._
+      import vkcrawler.Common._
       val friends = BFS.Friends(1, Seq[VKID](2,3,4))
       exchange ! friends
 

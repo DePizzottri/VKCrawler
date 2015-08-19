@@ -26,11 +26,11 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     "WholeIntegrationSpecSystem",
     WholeSpec.config.withFallback(PersistanceSpecConfiguration.config)))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "All simple BFS actors " must {
     "process simple graph " in {
-      import Common._
+      import vkcrawler.Common._
 
       class DummyGraphActor extends GraphActor with GraphSaverBackend {
         var fr = Map.empty[VKID, Seq[VKID]]
@@ -68,7 +68,7 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val g = Map[VKID, Seq[VKID]](1l -> Seq[VKID](2l, 3l), 2l->Seq[VKID](4l), 4l->Seq(5l))
 
       class Crawler extends Actor {
-        import Common._
+        import vkcrawler.Common._
 
         import scala.concurrent.ExecutionContext.Implicits.global
         system.scheduler.schedule(20.milliseconds, 20.milliseconds, self, "Run")

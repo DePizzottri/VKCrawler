@@ -9,14 +9,14 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("ExchangeSystem"))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "DummyExchange" must {
     "send friends to BFS and Queue actor" in {
       val bfs = TestProbe()
       val queue = TestProbe()
 
-      import Common._
+      import vkcrawler.Common._
 
       class DummyExchange extends ExchangeActor(bfs.ref.path, queue.ref.path) with DummyExchangeBackend
 
@@ -47,7 +47,7 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   "PublishingExchange " must {
     "publish incoming users and new friends " in {
-      import Common._
+      import vkcrawler.Common._
 
       val bfs = TestProbe()
       val queue = TestProbe()
@@ -73,7 +73,7 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val exchange = system.actorOf(Props(new PublishingExchange))
 
-      import Common._
+      import vkcrawler.Common._
       val friends = BFS.Friends(1, Seq[VKID](2,3,4))
       exchange ! friends
       val newUsers = BFS.NewUsers(Seq[VKID](2,3,4))

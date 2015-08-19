@@ -16,7 +16,7 @@ object Application extends App {
   def loadConf(args:Array[String]) = {
     def load(params:List[(String, String)]):Config = {
       if(params.isEmpty)
-        ConfigFactory.load
+        ConfigFactory.load()
       else {
         if(args.contains(params.head._1))
         {
@@ -31,14 +31,14 @@ object Application extends App {
     load(params)
   }
 
-  val arr = Array("bfs", "exchange", "used", "graph", "queue")
+  val arr = if(args.isEmpty) Array("bfs", "exchange", "used", "graph", "queue") else args
 
-  val conf = loadConf(if(args.isEmpty) arr else args)
-
-  if(conf.getString("asdasd") == "")
-    throw new Exception("Config not loaded!")
+  val conf = ConfigFactory.load().withFallback(loadConf(arr))
 
   val system = ActorSystem("BFSSystem", conf)
+
+  if(system.settings.config.getString("akka.remote.asdasd") != "asd")
+    throw new Exception("Config not loaded!")
 
   val initActors = Map(
     "bfs" -> bfs,
@@ -49,7 +49,7 @@ object Application extends App {
   )
 
   for (i <- initActors) {
-    if(args.contains(i._1)) {
+    if(arr.contains(i._1)) {
       println("Start " + i._1)
       i._2
     }

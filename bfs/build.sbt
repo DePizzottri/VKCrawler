@@ -14,8 +14,7 @@ libraryDependencies ++= Seq(
 
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked")
 
-assemblySettings
-
+/*
 val kamonVersion = "0.3.5"
 
 libraryDependencies ++= Seq(
@@ -25,6 +24,7 @@ libraryDependencies ++= Seq(
   "io.kamon" %% "kamon-system-metrics" % kamonVersion % "compile",
   "org.aspectj" % "aspectjweaver" % "1.8.2" % "compile"
 )
+*/
 
 libraryDependencies += "redis.clients" % "jedis" % "2.7.2"
 libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.4"
@@ -36,10 +36,15 @@ resolvers += "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven"
 
 libraryDependencies += "com.github.dnvriend" %% "akka-persistence-inmemory" % "1.0.3" % "test"
 
+javaOptions in run ++= Seq("-Xmx6G")
+
+fork := true
+
+test in assembly := {}
+/*
 aspectjSettings
 
 javaOptions <++= AspectjKeys.weaverOptions in Aspectj
 
-fork := true
 
-javaOptions in run ++= Seq("-Xmx6G")
+*/

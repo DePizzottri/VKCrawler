@@ -7,7 +7,7 @@ import akka.testkit.TestProbe
 class BFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem("BFSSpecSystem"))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   "BFS actor" must {
     "route Friends and NewUsers messages" in {
@@ -17,7 +17,7 @@ class BFSSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val bfs = system.actorOf(Props(new BFSActor(graph.ref.path, used.ref.path, exchange.ref.path)))
 
-      import Common._
+      import vkcrawler.Common._
       import BFS._
 
       val friends = Friends(1, Seq[VKID](1, 2, 3))

@@ -7,7 +7,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
 
   def this() = this(ActorSystem("ReliableLocalQueueSystem", PersistanceSpecConfiguration.config))
 
-  import vkcrawler.bfs.prototype3._
+  import vkcrawler.bfs._
 
   class ReliableLocalQueue extends ReliableQueueActor with ReliableLocalQueueBackend
 
@@ -40,7 +40,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
     }
 
     "preserve queue order" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
       val queue = system.actorOf(Props(new ReliableLocalQueue))
       val ins = Seq[VKID](1, 2, 3, 4)
@@ -64,7 +64,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
     }
 
     "then redeliver unconfirmed messages" in {
-      import Common._
+      import vkcrawler.Common._
       import ReliableMessaging._
       val queue = system.actorOf(Props(new ReliableLocalQueue))
 
