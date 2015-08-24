@@ -2,6 +2,8 @@ package vkcrawler.bfs
 
 import vkcrawler.Common._
 
+import java.util.Date
+
 trait QueueBackend {
   def push(ids:Seq[VKID]): Unit
   def popMany(): Seq[VKID]
@@ -30,16 +32,32 @@ trait MongoQueueBackend extends QueueBackend {
 
 
   def popMany(): Seq[VKID] = {
-    col.findOne() match {
-      case Some(doc:DBObject) => {
-        col.remove(doc)
-        doc.getAs[VKID]("id") match {
-          case Some(id) => Seq(id)
-          case None => Seq()
-        }
-      }
-      case None => Seq()
-    }
+    // col.findOne() match {
+    //   case Some(doc:DBObject) => {
+    //     col.remove(doc)
+    //     doc.getAs[VKID]("id") match {
+    //       case Some(id) => Seq(id)
+    //       case None => Seq()
+    //     }
+    //   }
+    //   case None => Seq()
+    // }
+    val bulkUpdate = col.initializeUnorderedBulkOperation
+
+    val ret = col.find(
+      MongoDBObject.empty,
+      MongoDBObject("id" -> 1)
+    )
+    .sort(MongoDBObject("lastUseDate" -> 1))
+    .take(50)
+    .flatMap { doc =>
+      bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
+      doc.getAs[VKID]("id")
+    }.toArray
+
+    bulkUpdate.execute
+
+    ret
   }
 }
 
