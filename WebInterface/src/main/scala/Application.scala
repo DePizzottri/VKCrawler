@@ -27,6 +27,7 @@ import scala.util.{Success, Failure}
 import scala.language.postfixOps
 
 object Application extends App with SimpleRoutingApp {
+  kamon.Kamon.start()  
 
   implicit val system = ActorSystem("CrawlerWEBInterface-system")
 
@@ -79,7 +80,7 @@ object Application extends App with SimpleRoutingApp {
         entity(as[FriendsListTaskResult]) { res =>
           for(info <- res.friends) {
             import UserInfoJsonSupport._
-            exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 148).map(x => x.uid))
+            exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 57).map(x => x.uid))
             exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
           }
 
