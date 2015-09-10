@@ -28,11 +28,13 @@ libraryDependencies += "com.github.dnvriend" %% "akka-persistence-inmemory" % "1
 
 javaOptions in run ++= Seq("-Xmx6G")
 
+javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
+
 fork := true
 
 test in assembly := {}
 
-val kamonVersion = "0.5.0"
+val kamonVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
   "io.kamon" %% "kamon-statsd" % kamonVersion,
