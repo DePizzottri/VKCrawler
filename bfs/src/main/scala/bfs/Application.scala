@@ -58,7 +58,8 @@ object Application extends App {
 
   println("Started")
 
-  def bfs = system.actorOf(
+  def bfs = if(arr.contains("bfs")) {
+    system.actorOf(
       Props(
         new ReliableBFSActor(
           ActorPath.fromString(system.toString + conf.getString("bfs.graphactor")),
@@ -68,20 +69,29 @@ object Application extends App {
         ),
         "BFSActor"
       )
+  }
 
-  class RabbitMQExchangeActor extends ReliableExchangeActor(
-    ActorPath.fromString(system.toString + conf.getString("exchange.bfsactor")),
-    ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
-  ) with RabbitMQExchangeBackend
+  def exchange = if(arr.contains("exchange")) {
+    class RabbitMQExchangeActor extends ReliableExchangeActor(
+      ActorPath.fromString(system.toString + conf.getString("exchange.bfsactor")),
+      ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
+    ) with RabbitMQExchangeBackend
 
-  def exchange = system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
+    system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
+  }
 
-  class GraphSaverMongoDBActor extends ReliableGraphActor with ReliableMongoDBGraphSaverBackend
-  def graph = system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
+  def graph = if(arr.contains("graph")) {
+    class GraphSaverMongoDBActor extends ReliableGraphActor with ReliableMongoDBGraphSaverBackend
+    system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
+  }
 
-  class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
-  def queue = system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+  def queue = if(arr.contains("queue")) {
+    class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
+    system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+  }
 
-  class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
-  def used = system.actorOf(Props(new JedisUsedActor), "UsedActor")
+  def used = if(arr.contains("used")) {
+    class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
+    system.actorOf(Props(new JedisUsedActor), "UsedActor")
+  }
 }
