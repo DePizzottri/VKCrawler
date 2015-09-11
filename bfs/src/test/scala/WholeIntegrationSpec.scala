@@ -142,11 +142,12 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val gcol = gdb(conf.getString("graph.mongodb.friends"))
       gcol.find().length should be (5)
 
-      //chech queue
+      //check queue
       val qmongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
       val qdb = qmongoClient(conf.getString("queue.mongodb.database"))
-      val qcol = gdb(conf.getString("queue.mongodb.queue"))
-      qcol.find().length should be (0)
+      val qcol = qdb(conf.getString("queue.mongodb.queue"))
+
+      qcol.find().length should be (5)
 
       //check used
       val jedis = new Jedis(conf.getString("used.redis.host"), conf.getInt("used.redis.port"))

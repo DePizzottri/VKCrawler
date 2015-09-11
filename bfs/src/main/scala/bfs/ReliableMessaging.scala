@@ -1,13 +1,18 @@
 package vkcrawler.bfs
 
 import akka.actor.{Actor, ActorPath}
+import scala.concurrent.duration._
+import kamon.Kamon
 
 object ReliableMessaging {
   case class Envelop(deliveryId:Long, msg:Any)
+  case class Confirm(deliveryId:Long)
+
+  case class SaveDeliverySnapshot()
 
   sealed trait ALODEvt
   case class MsgSent(msg:Any, destination: ActorPath) extends ALODEvt
-  case class Confirm(deliveryId:Long) extends ALODEvt
+  case class MsgConfirmed(deliveryId:Long) extends ALODEvt
 }
 
 trait EnvelopReceive {
@@ -30,8 +35,11 @@ import akka.persistence._
 trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with EnvelopReceive {
   import ReliableMessaging._
 
+
   private[ReliableMessaging] def processConfirm: Receive = {
-    case evt: ALODEvt => persist(evt){ e=>updateStateMsg(e)}
+    case Confirm(deliveriId) => persist(MsgConfirmed(deliveriId)){updateStateMsg}
+    case SaveDeliverySnapshot() => saveSnapshot(getDeliverySnapshot)
+    case SaveSnapshotSuccess(metadata) => Unit
   }
 
   override def receiveCommand: Receive = withPostConfirmation(processConfirm orElse processCommand)
@@ -42,6 +50,7 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
 
   def recover: Receive = {
     case evt: ALODEvt => updateStateMsg(evt)
+    case SnapshotOffer(_, snapshot: AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot) => setDeliverySnapshot(snapshot)
   }
 
   def deliver(msg: Any, dest: ActorPath) = {
@@ -52,23 +61,32 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
     case MsgSent(msg, dest) =>
       deliver(dest, deliveryId => Envelop(deliveryId, msg))
 
-    case Confirm(deliveryId) => confirmDelivery(deliveryId)
+    case MsgConfirmed(deliveryId) => confirmDelivery(deliveryId)
   }
 
   def processRecover: Receive = {
     case msg:RecoveryCompleted => Unit
   }
-}
 
-/*
-trait ResendOnError {
-  this: akka.actor.Actor =>
-  override def preRestart(reason: Throwable, message: Option[Any]) {
-    super.preRestart(reason, message)
-    message match {
-      case Some(m) => self ! m
-      case None => None
-    }
+  val config = context.system.settings.config
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.duration._
+
+  private[ReliableMessaging] def loadDuration(path: String) =  {
+    val dur = config.getDuration(path)
+    FiniteDuration(dur.toMillis, "ms")
+  }
+
+  context.system.scheduler.schedule(
+    loadDuration("reliable-messaging.unconfirmed-interval"),
+    loadDuration("reliable-messaging.unconfirmed-interval")) {
+    Kamon.metrics.histogram(s"${self.path.name}/unconfirmed-messages").record(numberOfUnconfirmed)
+  }
+
+  context.system.scheduler.schedule(
+    loadDuration("reliable-messaging.snapshot-interval"),
+    loadDuration("reliable-messaging.snapshot-interval")) {
+    self ! SaveDeliverySnapshot()
   }
 }
-*/
