@@ -28,10 +28,11 @@ libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.7"
 val kamonVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
+  "io.kamon" %% "kamon-core" % kamonVersion,
+  "io.kamon" %% "kamon-akka" % kamonVersion,
+  "io.kamon" %% "kamon-akka-remote" % kamonVersion,
   "io.kamon" %% "kamon-statsd" % kamonVersion,
   "io.kamon" %% "kamon-system-metrics" % kamonVersion,
-  "io.kamon" %% "kamon-akka-remote" % kamonVersion,
-  "io.kamon" %% "kamon-akka" % kamonVersion,
   "io.kamon" %% "kamon-spray" % kamonVersion,
   "org.aspectj" % "aspectjweaver" % "1.8.6"
 )

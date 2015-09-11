@@ -37,10 +37,11 @@ test in assembly := {}
 val kamonVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
+  "io.kamon" %% "kamon-core" % kamonVersion,
+  "io.kamon" %% "kamon-akka" % kamonVersion,
+  "io.kamon" %% "kamon-akka-remote" % kamonVersion,
   "io.kamon" %% "kamon-statsd" % kamonVersion,
   "io.kamon" %% "kamon-system-metrics" % kamonVersion,
-  "io.kamon" %% "kamon-akka-remote" % kamonVersion,
-  "io.kamon" %% "kamon-akka" % kamonVersion,
   "org.aspectj" % "aspectjweaver" % "1.8.6"
 )
 
