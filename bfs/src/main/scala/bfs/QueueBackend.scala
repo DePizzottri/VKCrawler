@@ -11,6 +11,7 @@ trait QueueBackend {
 
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.Imports._
+import scala.util._
 
 trait MongoQueueBackend extends QueueBackend {
   this: akka.actor.Actor =>
@@ -44,20 +45,27 @@ trait MongoQueueBackend extends QueueBackend {
     // }
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
-    val ret = col.find(
-      MongoDBObject.empty,
-      MongoDBObject("id" -> 1)
-    )
-    .sort(MongoDBObject("lastUseDate" -> 1))
-    .take(50)
-    .flatMap { doc =>
-      bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
-      doc.getAs[VKID]("id")
-    }.toArray
+    val tryRet = Try{
+      val ret = col.find(
+        MongoDBObject.empty,
+        MongoDBObject("id" -> 1)
+      )
+      .sort(MongoDBObject("lastUseDate" -> 1))
+      .take(50)
+      .flatMap { doc =>
+        bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
+        doc.getAs[VKID]("id")
+      }.toArray
 
-    bulkUpdate.execute
+      bulkUpdate.execute
 
-    ret
+      ret
+    }
+
+    tryRet match {
+      case Success(r) => r
+      case Failure(e) => Seq()
+    }
   }
 }
 

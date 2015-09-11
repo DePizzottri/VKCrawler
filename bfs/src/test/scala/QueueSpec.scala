@@ -3,7 +3,7 @@ package vkcrawler.bfs.test
 import akka.actor._
 import scala.concurrent.duration._
 
-class LocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
+class QueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("QueueSpecSystem"))
 

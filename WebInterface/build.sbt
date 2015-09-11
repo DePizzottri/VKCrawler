@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.7"
 
-val kamonVersion = "0.5.0"
+val kamonVersion = "0.5.1"
 
 libraryDependencies ++= Seq(
   "io.kamon" %% "kamon-statsd" % kamonVersion,
