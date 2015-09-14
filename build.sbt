@@ -1,23 +1,17 @@
 name := """VKCrawler"""
-version := "0.2.0-proto"
-scalaVersion := "2.11.5"
 
 lazy val common = Seq(
-    version := "0.2.0-proto",
-    scalaVersion := "2.11.5",
-    Revolver.settings
+  version := "0.3.0",
+  scalaVersion := "2.11.7",
+  Revolver.settings
 )
 
-lazy val root = (project in file(".")).aggregate(InfoNGraphRefiner, FLNGTaskMaster, Services, DataScheme)
+lazy val root = (project in file(".")).aggregate(DataScheme, WEBInterface, BFS, InfoNGraphRefiner)
 
-lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*).settings(assemblySettings)
+lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*)
 
-lazy val Services = (project in file("lib/Services")).settings(common: _*).settings(assemblySettings)
+lazy val BFS = (project in file("BFS")).settings(common: _*).dependsOn(DataScheme)
 
-lazy val InfoNGraphRefiner = (project in file("Refineries/InfoNGraphRefiner")).settings(common: _*).settings(assemblySettings).dependsOn(DataScheme)
+lazy val WEBInterface = (project in file("WEBInterface")).settings(common: _*).dependsOn(DataScheme, BFS)
 
-lazy val FLNGTaskMaster = (project in file("TaskMasters/FLNGTaskMaster")).settings(common: _*).settings(assemblySettings).dependsOn(DataScheme)
-
-lazy val WEBInterface = (project in file("WEBInterface")).settings(common: _*).settings(assemblySettings).dependsOn(DataScheme)
-
-import AssemblyKeys._
+lazy val InfoNGraphRefiner = (project in file("Refineries/InfoNGraphRefiner")).settings(common: _*).dependsOn(DataScheme)

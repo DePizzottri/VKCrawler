@@ -202,3 +202,5 @@ install/
 */*.vcxproj.*
 */CMakeFiles
 */*.cmake
+
+build

@@ -1,4 +1,4 @@
-package com.vkcrawler.refineries.InfoNGraphRefiner
+package vkcrawler.refineries.InfoNGraphRefiner
 
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Connection
@@ -8,18 +8,20 @@ import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.Imports._
 import com.typesafe.config.ConfigFactory
 import spray.json._
-import com.vkcrawler.DataModel._
-import com.vkcrawler.DataModel.SprayJsonSupport._
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaLocalDateTimeConversionHelpers
 import com.mongodb.casbah.commons.conversions.scala.RegisterJodaTimeConversionHelpers
+
+import vkcrawler.DataModel._
+import vkcrawler.DataModel.SprayJsonSupport._
+
 
 object InfoNGraphRefiner extends App {
   RegisterJodaTimeConversionHelpers()
   val conf = ConfigFactory.load()
   
-  val EXCHANGE_NAME = "VKCrawler"
-  val QUEUE_NAME = "InfoNGraph_Refiner"
-  val ROUTING_KEY = "info_and_graph"
+  val EXCHANGE_NAME = conf.getString("RabbitMQ.exchange")
+  val QUEUE_NAME = conf.getString("RabbitMQ.queue_name")
+  val ROUTING_KEY = conf.getString("RabbitMQ.routing_key")
   
   //connect to RabbitMQ
   val factory = new ConnectionFactory()
@@ -40,6 +42,7 @@ object InfoNGraphRefiner extends App {
   //connect to MongoDB
   val mongoClient = MongoClient(conf.getString("MongoDB.host"), conf.getInt("MongoDB.port"))
   val db = mongoClient(conf.getString("MongoDB.database"))
+  val coll = db(conf.getString("MongoDB.collection"))
   
   //continuously
   var runTime = 0l
@@ -51,19 +54,14 @@ object InfoNGraphRefiner extends App {
     val message = new String(delivery.getBody())
     
     //parse
-    import FriendsListTaskResultJsonSupport._
-    val rawObj = message.parseJson.convertTo[FriendsListTaskResult]
+    import UserInfoJsonSupport._
+    val userInfo = message.parseJson.convertTo[UserInfo]
 
     //put static information
     //and
     //put graph information
-    import com.vkcrawler.DataModel.Implicits._
-    rawObj match {
-      case FriendsListTaskResult(task, res) => {
-        val user_info_and_graph = db("user_info_and_graph")
-        res.foreach { x => user_info_and_graph.insert(x.toDB()) }
-      }
-    }
+    import vkcrawler.DataModel.Implicits._
+    coll.insert(userInfo.toDB())
     
     //confirm delivery
     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);

@@ -4,18 +4,18 @@ resolvers += "spray repo" at "http://repo.spray.io"
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.2"
+val sprayVersion = "1.3.2"
 
-libraryDependencies += "io.spray" %% "spray-can" % "1.3.1"
+val akkaVersion = "2.3.11"
 
-libraryDependencies += "io.spray" %% "spray-http" % "1.3.1"
-
-libraryDependencies += "io.spray" %% "spray-routing" % "1.3.1"
-
-libraryDependencies += "org.mongodb" %% "casbah" % "2.8.1"
-
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.0"
-
-libraryDependencies += "com.rabbitmq" % "amqp-client" % "3.5.2"
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+  "io.spray" %% "spray-can" % sprayVersion,
+  "io.spray" %% "spray-http" % sprayVersion,
+  "io.spray" %% "spray-routing" % sprayVersion,
+  "org.mongodb" %% "casbah" % "2.8.2",
+  "org.slf4j" % "slf4j-simple" % "1.7.7",
+  "com.rabbitmq" % "amqp-client" % "3.5.4"
+)
 
 scalacOptions ++= Seq("-feature")
