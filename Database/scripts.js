@@ -17,6 +17,8 @@ function init() {
     db.queue.insert({id:NumberLong(2763114)})
     db.queue.createIndex({"id":1})
     db.queue.createIndex({"lastUseDate":1})
+
+    db.friends.createIndex({"id":1})
 }
 
 function past(m) {
