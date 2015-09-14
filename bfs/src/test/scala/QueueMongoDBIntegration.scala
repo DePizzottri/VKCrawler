@@ -8,8 +8,10 @@ import scala.util.Random
 object QueueMongoDBIntegration {
   private def getRandomCollection = Random.alphanumeric.take(5).mkString
 
+  val popSize = 5
+
   def config = ConfigFactory.parseString(
-    """
+    s"""
     queue {
       mongodb {
         host = 192.168.1.9
@@ -17,6 +19,8 @@ object QueueMongoDBIntegration {
         database = vkcrawler_queue_test
         queue = queue
       }
+
+      popSize = $popSize
     }
     """.stripMargin
   )
@@ -65,11 +69,32 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     "preserve queue order" in {
       import vkcrawler.Common._
       import ReliableMessaging._
+
+      val popSize = QueueMongoDBIntegration.popSize
       val queue = system.actorOf(Props(new QueueMongoDBActor))
-      val ins = Seq[VKID](1)
+      val ins = (1l to popSize * 2).toSeq
       queue ! Queue.Push(ins)
       queue ! Queue.Pop
-      expectMsg(Envelop(2, Queue.Items(Seq(1))))
+      expectMsg(Envelop(2, Queue.Items(1l to popSize)))
+      queue ! Queue.Pop
+      expectMsg(Envelop(3, Queue.Items((1l to popSize).map{x => x + popSize})))
+    }
+
+    "be idempotent " in {
+      import vkcrawler.Common._
+      import ReliableMessaging._
+      val popSize = QueueMongoDBIntegration.popSize
+
+      val queue = system.actorOf(Props(new QueueMongoDBActor{
+        override def persistenceId = Random.alphanumeric.take(5).mkString
+      }))
+
+      val ins = Seq[VKID](1, 1, 1)
+      queue ! Queue.Push(ins)
+      queue ! Queue.Pop
+      expectMsg(Envelop(1, Queue.Items(1l to popSize)))
+      queue ! Queue.Pop
+      expectMsg(Envelop(2, Queue.Items((1l to popSize).map{x => x + popSize})))
     }
   }
 }

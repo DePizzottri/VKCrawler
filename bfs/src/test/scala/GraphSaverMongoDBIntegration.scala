@@ -21,6 +21,8 @@ object GraphSaverMongoDBIntegrationSpec {
         database = vkcrawler_graph_test
         friends = friends
       }
+
+      upsert = true
     }
     """.stripMargin
   )

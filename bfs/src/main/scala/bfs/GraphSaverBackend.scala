@@ -54,8 +54,15 @@ trait ReliableMongoDBGraphSaverBackend extends ReliableGraphSaverBackend {
   }
 
   val collection = conf.getString("graph.mongodb.friends")
+  val isUpsert = conf.getBoolean("graph.upsert")
 
   def saveFriends(id:VKID, ids:Seq[VKID]): Unit = {
-    db(collection).insert(MongoDBObject("id" -> id, "friends" -> ids))
+    if(!isUpsert)
+      db(collection).insert(MongoDBObject("id" -> id, "friends" -> ids))
+    else {
+      val query = MongoDBObject("id" -> id)
+      val update = $set("friends" -> ids)
+      val res = db(collection).update(query, update, upsert=true)
+    }
   }
 }

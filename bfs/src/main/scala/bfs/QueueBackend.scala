@@ -25,24 +25,15 @@ trait MongoQueueBackend extends QueueBackend {
     if(!ids.isEmpty) {
       val bulkInsert = col.initializeUnorderedBulkOperation
       ids.foreach { id =>
-        bulkInsert.insert(MongoDBObject("id" -> id))
+        bulkInsert.find(MongoDBObject("id" -> id)).upsert().updateOne($set("id" -> id))
       }
       bulkInsert.execute
     }
   }
 
+  val popSize = conf.getInt("queue.popSize")
 
   def popMany(): Seq[VKID] = {
-    // col.findOne() match {
-    //   case Some(doc:DBObject) => {
-    //     col.remove(doc)
-    //     doc.getAs[VKID]("id") match {
-    //       case Some(id) => Seq(id)
-    //       case None => Seq()
-    //     }
-    //   }
-    //   case None => Seq()
-    // }
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
     val tryRet = Try{
@@ -51,7 +42,7 @@ trait MongoQueueBackend extends QueueBackend {
         MongoDBObject("id" -> 1)
       )
       .sort(MongoDBObject("lastUseDate" -> 1))
-      .take(50)
+      .take(popSize)
       .flatMap { doc =>
         bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
         doc.getAs[VKID]("id")
