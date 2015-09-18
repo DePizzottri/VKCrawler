@@ -5,7 +5,15 @@ import com.mongodb.DBObject
 import org.joda.time.DateTime
 import vkcrawler.Common.VKID
 
-case class FriendsListTask(`type`: String, data: Seq[VKID])
+case class Task(`type`:String, ids: Seq[VKID])
+case class TaskResult(`type`:String, data:String)
+
+// case class FriendsListTask(`type`: String, data: Seq[VKID]) extends Task(`type`)
+// case class FriendsListTaskResult(
+//   friends: Seq[UserInfo]) extends TaskResult(`type`)
+//
+// case class WallTask(`type`:String, data: Seq[VKID]) extends Task(`type`)
+// case class WallTaskResult(`type`, data:String) extends Task(`type`)
 
 case class Birthday(day: Int, month: Int, year: Option[Int])
 
@@ -22,17 +30,15 @@ case class UserInfo(
   sex: Option[Int],
   processDate: DateTime)
 
-case class FriendsListTaskResult(
-  friends: Seq[UserInfo])
 
 object DBConversion {
-  def task(o: DBObject) = FriendsListTask(
-    o("type").asInstanceOf[String],
-    (for (obj <- o("data").asInstanceOf[BasicDBList]) yield obj.asInstanceOf[Number].longValue).toSeq
-  )
+  // def task(o: DBObject) = FriendsListTask(
+  //   o("type").asInstanceOf[String],
+  //   (for (obj <- o("data").asInstanceOf[BasicDBList]) yield obj.asInstanceOf[Number].longValue).toSeq
+  // )
 
   def friendsRaw(o: DBObject) = UserInfo(
-    o("uid").asInstanceOf[VKID],
+    o("id").asInstanceOf[VKID],
     o("friends").asInstanceOf[Seq[UserIdWithCity]],
     o("firstName").asInstanceOf[String],
     o("lastName").asInstanceOf[String],
@@ -48,7 +54,7 @@ object Implicits {
     def toDB() = fr match {
       case UserInfo(uid, friends, fn, ln, birthday, city, interests, sex, processDate) =>
         MongoDBObject(
-          "uid" -> uid,
+          "id" -> uid,
           "friends" -> friends.map{case UserIdWithCity(uid, city) => MongoDBObject("uid" -> uid, "city" -> city)},
           "firstName" -> fn,
           "lastName" -> ln,

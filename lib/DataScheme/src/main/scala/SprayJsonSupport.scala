@@ -21,10 +21,10 @@ object JodaDateTimeSupport extends DefaultJsonProtocol {
   }
 }
 
-object FriendsListTaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  import JodaDateTimeSupport._
-  implicit val taskFormat = jsonFormat2(FriendsListTask)
-}
+// object FriendsListTaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+//   import JodaDateTimeSupport._
+//   implicit val taskFormat = jsonFormat2(FriendsListTask)
+// }
 
 object UserIdWithCityJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
     implicit val friendsRawFRFormat = jsonFormat2(UserIdWithCity)
@@ -41,8 +41,8 @@ object UserInfoJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val friendsRawFormat = jsonFormat9(UserInfo)
 }
 
-object FriendsListTaskResultJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  import JodaDateTimeSupport._
-  import UserInfoJsonSupport._
-  implicit val frindesListTaskResultFormat = jsonFormat1(FriendsListTaskResult)
-}
+// object FriendsListTaskResultJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+//   import JodaDateTimeSupport._
+//   import UserInfoJsonSupport._
+//   implicit val frindesListTaskResultFormat = jsonFormat1(FriendsListTaskResult)
+// }
