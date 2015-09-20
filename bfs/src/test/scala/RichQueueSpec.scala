@@ -38,6 +38,9 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   "ReliableRichQueueActor " must {
     "correct return items in task " in {
       class TestRichQueueActor extends ReliableRichQueueActor {
+        class LocalBackendActor extends RichQueueBackendActor with LocalRichQueueBackend
+        //type BackendActor = LocalBackendActor
+        override def createBackend = new LocalBackendActor
         override val demandThreshold = 0
       }
 
@@ -50,37 +53,14 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       queue ! RichQueue.Push(ids2.toSeq)
 
       queue ! RichQueue.Pop(List("task1"))
-      val e1 = expectMsgClass(classOf[Envelop])
-      e1.msg should be (RichQueue.Empty)
-      queue ! Confirm(e1.deliveryId)
-
-      expectNoMsg(1.seconds)
-
-      queue ! RichQueue.Pop(List("task1"))
       val e2 = expectMsgClass(classOf[Envelop])
       e2.msg should be (RichQueue.Item(Task("task1", ids1)))
       queue ! Confirm(e2.deliveryId)
-
-      queue ! RichQueue.Pop(List("task2"))
-      val e4 = expectMsgClass(classOf[Envelop])
-      e4.msg should be (RichQueue.Empty)
-      queue ! Confirm(e4.deliveryId)
-
-      expectNoMsg(1.seconds)
 
       queue ! RichQueue.Pop(List("task2"))
       val e3 = expectMsgClass(classOf[Envelop])
       e3.msg should be (RichQueue.Item(Task("task2", ids2)))
       queue ! Confirm(e3.deliveryId)
     }
-
-    // "return empty on emtpy queue" in {
-    // }
-    //
-    // "preserve queue order" in {
-    // }
-    //
-    // "then redeliver unconfirmed messages" in {
-    // }
   }
 }

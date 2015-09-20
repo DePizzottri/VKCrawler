@@ -23,7 +23,7 @@ object RichQueue {
   case class Empty()
 }
 
-class ReliableRichQueueActor extends ReliableMessaging {
+abstract class ReliableRichQueueActor extends ReliableMessaging with Stash {
   import RichQueue._
 
   override def persistenceId: String = "rich-queue-actor-id"
@@ -32,8 +32,10 @@ class ReliableRichQueueActor extends ReliableMessaging {
   import scala.collection.mutable.Queue
   var queues = Map.empty[String, Queue[Task]]
 
-  class BackendActor extends RichQueueBackendActor with LocalRichQueueBackend
-  val backend = context.system.actorOf(Props(new BackendActor))
+  //class BackendActor extends RichQueueBackendActor with LocalRichQueueBackend
+  //type BackendActor <: RichQueueBackendActor
+  def createBackend: RichQueueBackendActor
+  val backend = context.system.actorOf(Props(createBackend))
 
   val demandThreshold = 10
 
@@ -41,24 +43,12 @@ class ReliableRichQueueActor extends ReliableMessaging {
   {
     case RichQueueBackendProtocol.QueueData(tp, tasks) => {
       queues.getOrElseUpdate(tp, Queue()) ++= tasks
+      unstashAll
     }
     case Push(ids) => {
       backend ! RichQueueBackendProtocol.Push(ids)
     }
     case Pop(types) => {
-      //find tasks with types
-      val taskCandidates = queues.filter{ case (k, v) =>
-        types.contains(k) && v.size > 0
-      }
-
-      if (taskCandidates.size > 0) {
-        val task = taskCandidates.keys.toVector(Random.nextInt(taskCandidates.size))
-        val item = taskCandidates(task).dequeue
-        deliver(Item(item), sender.path)
-      } else {
-        deliver(Empty, sender.path)
-      }
-
       //recalc demand
       val thresTypes = queues.filter{ case (k, v) =>
         v.size < demandThreshold
@@ -71,6 +61,27 @@ class ReliableRichQueueActor extends ReliableMessaging {
       if(demandedTypes.size > 0) {
         backend ! RichQueueBackendProtocol.Demand(demandedTypes.toSeq)
       }
+
+      //if all types demanded
+      if(types == demandedTypes) {
+        stash
+      }
+      else {
+        val readyTypes = types.toSet -- demandedTypes
+        //find tasks with ready types
+        val taskCandidates = queues.filter { case (k, v) =>
+          readyTypes.contains(k) && v.size > 0
+        }
+
+        if (taskCandidates.size > 0) {
+          val task = taskCandidates.keys.toVector(Random.nextInt(taskCandidates.size))
+          val item = taskCandidates(task).dequeue
+          deliver(Item(item), sender.path)
+        } else {
+          deliver(Empty, sender.path)
+        }
+      }
+
     }
   }
 }
@@ -86,10 +97,8 @@ class RichQueueBackendActor extends Actor {
   this: RichQueueBackend =>
   import RichQueueBackendProtocol._
 
-  val conf = context.system.settings.config
-
-  val taskSize = conf.getInt("queue.taskSize")
-  val batchSize = conf.getInt("queue.batchSize")
+  val taskSize = context.system.settings.config.getInt("queue.taskSize")
+  val batchSize = context.system.settings.config.getInt("queue.batchSize")
 
   override def receive = {
     case Push(ids) => {
