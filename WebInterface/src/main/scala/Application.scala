@@ -17,7 +17,10 @@ import java.util.Date
 
 import vkcrawler.DataModel._
 import vkcrawler.DataModel.SprayJsonSupport._
-import vkcrawler.DataModel.SprayJsonSupport.FriendsListTaskResultJsonSupport._
+import TaskResultJsonSupport._
+import UserInfoJsonSupport._
+
+// import vkcrawler.DataModel.SprayJsonSupport.TaskResultJsonSupport._
 
 import com.typesafe.config.ConfigFactory
 
@@ -45,7 +48,7 @@ object Application extends App with SimpleRoutingApp {
       }
     }
 
-  import FriendsListTaskJsonSupport._
+  import TaskJsonSupport._
 
   lazy val getTask =
     path("getTask") {
@@ -58,11 +61,11 @@ object Application extends App with SimpleRoutingApp {
               import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
               implicit val timeout = Timeout(15 seconds)
-              val f = (queue ? Queue.Pop).mapTo[ReliableMessaging.Envelop].map{
+              val f = (queue ? RichQueue.Pop(types.split(","))).mapTo[ReliableMessaging.Envelop].map{
                 envlp =>
                   queue ! ReliableMessaging.Confirm(envlp.deliveryId)
                   envlp.msg match {
-                    case msg@Queue.Items(ids) => FriendsListTask("friends_list", ids)
+                    case msg@RichQueue.Item(t) => t
                     //case msg@Queue.Empty => """{error:"No task"}""".parseJson
                   }
               }
@@ -77,14 +80,26 @@ object Application extends App with SimpleRoutingApp {
   lazy val postTask = {
     path("postTask") {
       post {
-        entity(as[FriendsListTaskResult]) { res =>
-          for(info <- res.friends) {
-            import UserInfoJsonSupport._
-            exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 57).map(x => x.uid))
-            exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
-          }
+        entity(as[TaskResult]) { res =>
+          res.`type` match {
+            case "friends_list" => {
+              val flo = res.data.convertTo[Seq[UserInfo]]
+              for(info <- flo) {
+                import UserInfoJsonSupport._
+                exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 57).map(x => x.uid))
+                exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
+              }
 
-          complete("Ok")
+              complete("Ok")
+            }
+            case "wall_posts" => {
+              for(p <- res.data.convertTo[Vector[JsValue]]) {
+                exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p.compactPrint)
+              }
+
+              complete("Ok")
+            }
+          }
         }
       }
     }

@@ -86,8 +86,12 @@ object Application extends App {
   }
 
   def queue = if(arr.contains("queue")) {
-    class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
-    system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+    //class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
+    class RichQueueMongoDBActor extends ReliableRichQueueActor {
+      class MongoBackendActor extends RichQueueBackendActor with MongoRichQueueBackend
+      override def createBackend = new MongoBackendActor
+    }
+    system.actorOf(Props(new RichQueueMongoDBActor), "QueueActor")
   }
 
   def used = if(arr.contains("used")) {

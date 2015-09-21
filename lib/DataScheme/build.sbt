@@ -5,5 +5,6 @@ libraryDependencies ++= Seq(
   "io.spray" %%  "spray-json" % "1.3.1",
   "org.mongodb" %% "casbah" % "2.8.2",
   "org.slf4j" % "slf4j-simple" % "1.7.7",
-  "com.typesafe" % "config" % "1.3.0"
+  "com.typesafe" % "config" % "1.3.0",
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 )

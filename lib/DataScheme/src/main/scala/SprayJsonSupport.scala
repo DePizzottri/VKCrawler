@@ -21,6 +21,15 @@ object JodaDateTimeSupport extends DefaultJsonProtocol {
   }
 }
 
+object TaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+  implicit val taskFormat = jsonFormat2(Task)
+}
+
+
+object TaskResultJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+  implicit val taskResulFormat = jsonFormat2(TaskResult)
+}
+
 // object FriendsListTaskJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
 //   import JodaDateTimeSupport._
 //   implicit val taskFormat = jsonFormat2(FriendsListTask)

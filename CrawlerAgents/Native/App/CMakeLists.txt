@@ -13,6 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Plugin/include)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../FakeFriendsAndInfoPlugin ${CMAKE_CURRENT_SOURCE_DIR}/../FakeFriendsAndInfoPlugin)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../FriendsListCrawlPlugin ${CMAKE_CURRENT_SOURCE_DIR}/../FriendsListCrawlPlugin)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../WallPlugin ${CMAKE_CURRENT_SOURCE_DIR}/../WallPlugin)
 
 set(CRAWLER_SRC src/App.cpp src/PluginsCache.cpp src/WEBGetTask.cpp src/WorkerTask.cpp)
 

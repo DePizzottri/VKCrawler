@@ -5,8 +5,11 @@ import com.mongodb.DBObject
 import org.joda.time.DateTime
 import vkcrawler.Common.VKID
 
-case class Task(`type`:String, ids: Seq[VKID])
-case class TaskResult(`type`:String, data:String)
+import spray.json._
+
+case class Task(`type`:String, data: Seq[VKID])
+case class TaskResult(`type`:String, data:JsValue)
+
 
 // case class FriendsListTask(`type`: String, data: Seq[VKID]) extends Task(`type`)
 // case class FriendsListTaskResult(
@@ -14,6 +17,9 @@ case class TaskResult(`type`:String, data:String)
 //
 // case class WallTask(`type`:String, data: Seq[VKID]) extends Task(`type`)
 // case class WallTaskResult(`type`, data:String) extends Task(`type`)
+
+// case class FriendsListTaskResult(
+//   friends: Seq[UserInfo])
 
 case class Birthday(day: Int, month: Int, year: Option[Int])
 

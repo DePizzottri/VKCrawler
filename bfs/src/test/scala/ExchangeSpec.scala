@@ -28,7 +28,7 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       exchange ! newUsers
 
       bfs.expectMsg(friends)
-      queue.expectMsg(Queue.Push(Seq[VKID](2,3,4)))
+      queue.expectMsg(RichQueue.Push(Seq[VKID](2,3,4)))
     }
   }
 
@@ -80,7 +80,7 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       exchange ! newUsers
 
       bfs.expectMsg(friends)
-      queue.expectMsg(Queue.Push(Seq[VKID](2,3,4)))
+      queue.expectMsg(RichQueue.Push(Seq[VKID](2,3,4)))
 
       //expectNoMsg(500.milliseconds) //sync
 

@@ -153,7 +153,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
             }
         }
     }
-    
+
     return ret;
 }
 
@@ -268,7 +268,8 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
     }
 
     Poco::JSON::Object::Ptr ret(new Poco::JSON::Object);
-    ret->set("friends", friends);
+    ret->set("type", type);
+    ret->set("data", friends);
 
     return ret;
 }

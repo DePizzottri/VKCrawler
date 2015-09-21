@@ -20,6 +20,7 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-httpx" % sprayVersion,
   "io.spray" %% "spray-util" % sprayVersion,
   "io.spray" %% "spray-routing" % sprayVersion,
+  //"io.spray" %% "spray-testkit" % sprayVersion,
   "io.spray" %% "spray-json" % "1.3.1"
 )
 

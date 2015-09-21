@@ -30,7 +30,7 @@ trait LocalRichQueueBackend extends RichQueueBackend {
       Task(`type`, ids)
     })
 
-    ret.filter{t => t.ids.size != 0}
+    ret.filter{t => t.data.size != 0}
   }
 }
 
