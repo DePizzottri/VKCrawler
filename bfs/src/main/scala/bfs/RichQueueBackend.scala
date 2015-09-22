@@ -23,12 +23,15 @@ trait LocalRichQueueBackend extends RichQueueBackend {
   }
 
   def pop(`type`:String, taskSize:Int, count:Int): Seq[Task] = {
+    //println(s"Pop: $queue $taskSize $count")
     val ret = (for (j <- 1 to count) yield {
       val ids = (
         for (i <- 1 to taskSize if !queue.isEmpty) yield {queue.dequeue}
       )
       Task(`type`, ids)
     })
+
+    ret.filter{t => t.data.size != 0}.foreach{t => queue ++= t.data}
 
     ret.filter{t => t.data.size != 0}
   }

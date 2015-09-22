@@ -50,7 +50,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       exchange ! newUsers
 
       val eq = queue.expectMsgClass(classOf[Envelop])
-      eq.msg should be (Queue.Push(newUsers.users))
+      eq.msg should be (RichQueue.Push(newUsers.users))
       queue.receiveN(2, 3.seconds)
       exchange ! Confirm(eq.deliveryId)
     }
@@ -88,7 +88,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val newUsers = BFS.NewUsers(Seq[VKID](2,3,4))
       exchange ! newUsers
       val eq = queue.expectMsgClass(classOf[Envelop])
-      eq.msg should be (Queue.Push(newUsers.users))
+      eq.msg should be (RichQueue.Push(newUsers.users))
       exchange ! Confirm(eq.deliveryId)
 
       published should be (TrieMap("friends" -> friends, "new_users" -> newUsers))

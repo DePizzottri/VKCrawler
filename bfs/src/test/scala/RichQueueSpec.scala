@@ -11,7 +11,7 @@ import scala.concurrent.duration._
 
 object RichQueueSpec {
   val taskSize = 5
-  val batchSize = 1
+  val batchSize = 10
 
   def config = ConfigFactory.parseString(
     s"""
@@ -40,8 +40,9 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       class TestRichQueueActor extends ReliableRichQueueActor {
         class LocalBackendActor extends RichQueueBackendActor with LocalRichQueueBackend
         //type BackendActor = LocalBackendActor
+        override def persistenceId = "test-rich-queue-id1"
         override def createBackend = new LocalBackendActor
-        override val demandThreshold = 0
+        override val demandThreshold = 2
       }
 
       val queue = system.actorOf(Props(new TestRichQueueActor))
@@ -57,10 +58,25 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       e2.msg should be (RichQueue.Item(Task("task1", ids1)))
       queue ! Confirm(e2.deliveryId)
 
-      queue ! RichQueue.Pop(List("task2"))
+      queue ! RichQueue.Pop(List("task1"))
       val e3 = expectMsgClass(classOf[Envelop])
-      e3.msg should be (RichQueue.Item(Task("task2", ids2)))
+      e3.msg should be (RichQueue.Item(Task("task1", ids2)))
       queue ! Confirm(e3.deliveryId)
+
+      queue ! RichQueue.Pop(List("task2"))
+      val e4 = expectMsgClass(classOf[Envelop])
+      e4.msg should be (RichQueue.Item(Task("task2", ids1)))
+      queue ! Confirm(e4.deliveryId)
+
+      queue ! RichQueue.Pop(List("task2"))
+      val e5 = expectMsgClass(classOf[Envelop])
+      e5.msg should be (RichQueue.Item(Task("task2", ids2)))
+      queue ! Confirm(e5.deliveryId)
+
+      queue ! RichQueue.Pop(List("task1"))
+      val e6 = expectMsgClass(classOf[Envelop])
+      e6.msg should be (RichQueue.Item(Task("task1", ids1)))
+      queue ! Confirm(e6.deliveryId)
     }
   }
 }
