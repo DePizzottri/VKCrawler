@@ -8,7 +8,7 @@ object ReliableMessaging {
   case class Envelop(deliveryId:Long, msg:Any)
   case class Confirm(deliveryId:Long)
 
-  case class SaveDeliverySnapshot()
+  //case class SaveDeliverySnapshot()
 
   sealed trait ALODEvt
   case class MsgSent(msg:Any, destination: ActorPath) extends ALODEvt
@@ -32,25 +32,37 @@ trait EnvelopReceive {
 
 import akka.persistence._
 
-trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with EnvelopReceive {
+trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with EnvelopReceive with HierarchicalSnapshotStore {
   import ReliableMessaging._
-
 
   private[ReliableMessaging] def processConfirm: Receive = {
     case Confirm(deliveriId) => persist(MsgConfirmed(deliveriId)){updateStateMsg}
-    case SaveDeliverySnapshot() => saveSnapshot(getDeliverySnapshot)
+    //case SaveDeliverySnapshot() => saveSnapshot(getDeliverySnapshot)
     case SaveSnapshotSuccess(metadata) => Unit
   }
 
-  override def receiveCommand: Receive = withPostConfirmation(processConfirm orElse processCommand)
+  override def receiveCommand: Receive = withPostConfirmation(processConfirm orElse processCommand orElse snapshotReceiveing)
 
-  override def receiveRecover: Receive = withPostConfirmation(recover orElse processRecover)
+  override def receiveRecover: Receive = withPostConfirmation(recover orElse processRecover orElse snapshotRecover)
 
   def processCommand: Receive
 
+  override def storeSnapshot(childStates: List[Any]):Unit = {
+    //println(s"Delvery snapshot store: ${getDeliverySnapshot}");
+    super.storeSnapshot(getDeliverySnapshot :: childStates)
+  }
+
+  override def restoreFromSnapshot(states:List[Any]): Unit = {
+    //println(s"Delvery snapshot offer: ${states.head}");
+    setDeliverySnapshot(states.head.asInstanceOf[AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot])
+    super.restoreFromSnapshot(states.tail)
+  }
+
   def recover: Receive = {
     case evt: ALODEvt => updateStateMsg(evt)
-    case SnapshotOffer(_, snapshot: AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot) => setDeliverySnapshot(snapshot)
+    // case SnapshotOffer(_, snapshot: AtLeastOnceDelivery.AtLeastOnceDeliverySnapshot) => {
+    //   println(s"A $snapshot"); setDeliverySnapshot(snapshot)
+    // }
   }
 
   def deliver(msg: Any, dest: ActorPath) = {
@@ -87,6 +99,32 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
   context.system.scheduler.schedule(
     loadDuration("reliable-messaging.snapshot-interval"),
     loadDuration("reliable-messaging.snapshot-interval")) {
-    self ! SaveDeliverySnapshot()
+    self ! HierarchicalSnapshotStore.SaveSnapshot()//SaveDeliverySnapshot()
+  }
+}
+
+object HierarchicalSnapshotStore {
+  case class SaveSnapshot()
+}
+
+trait HierarchicalSnapshotStore {
+  this: PersistentActor =>
+
+  def snapshotReceiveing: Receive = {
+    case HierarchicalSnapshotStore.SaveSnapshot() => {
+      storeSnapshot(Nil)
+    }
+  }
+
+  def snapshotRecover: Receive = {
+    case SnapshotOffer(_, snapshot: List[Any]) => restoreFromSnapshot(snapshot)
+  }
+
+  def storeSnapshot(childStates: List[Any]): Unit = {
+    saveSnapshot(childStates.reverse)
+  }
+
+  def restoreFromSnapshot(states:List[Any]): Unit = {
+    assert(states == Nil)
   }
 }
