@@ -19,8 +19,8 @@ object ExchangeRabbitMQSpec {
     exchange {
       rabbitmq {
         host = localhost
-        username = vkcrawler
-        password = vkcrawler
+        username = guest
+        password = guest
         exchange_name = VKCrawler
       }
     }

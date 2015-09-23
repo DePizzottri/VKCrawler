@@ -10,3 +10,9 @@ cache:
 
 jdk:
   - oraclejdk8
+
+services:
+  - mongodb
+  - redis-server
+  - rabbitmq
+  

@@ -17,7 +17,7 @@ object MongoRichQueueSpec {
     s"""
     queue {
       mongodb {
-        host = 192.168.1.9
+        host = localhost
         port = 27017
         database = vkcrawler_queue_test
         queue = queue

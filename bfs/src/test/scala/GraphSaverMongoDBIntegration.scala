@@ -16,7 +16,7 @@ object GraphSaverMongoDBIntegrationSpec {
     """
     graph {
       mongodb {
-        host = 192.168.1.9
+        host = localhost
         port = 27017
         database = vkcrawler_graph_test
         friends = friends
