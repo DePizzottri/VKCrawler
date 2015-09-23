@@ -12,6 +12,6 @@ lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*)
 
 lazy val WEBInterface = (project in file("WEBInterface")).settings(common: _*).dependsOn(DataScheme, BFS)
 
-lazy val BFS = (project in file("BFS")).settings(common: _*).dependsOn(DataScheme)
+lazy val BFS = (project in file("bfs")).settings(common: _*).dependsOn(DataScheme)
 
 lazy val InfoNGraphRefiner = (project in file("Refineries/InfoNGraphRefiner")).settings(common: _*).dependsOn(DataScheme)

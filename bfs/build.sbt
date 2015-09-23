@@ -30,9 +30,9 @@ javaOptions in run ++= Seq("-Xmx6G")
 
 javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
 
-// fork := true
+fork := true
 
-// test in assembly := {}
+test in assembly := {}
 
 val kamonVersion = "0.5.1"
 
