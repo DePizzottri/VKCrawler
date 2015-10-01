@@ -6,7 +6,7 @@ lazy val common = Seq(
   Revolver.settings
 )
 
-lazy val root = (project in file(".")).aggregate(DataScheme, WEBInterface, BFS, InfoNGraphRefiner)
+lazy val root = (project in file(".")).aggregate(DataScheme, WEBInterface, BFS, InfoNGraphRefiner, WallPostsRefiner)
 
 lazy val DataScheme = (project in file("lib/DataScheme")).settings(common: _*)
 

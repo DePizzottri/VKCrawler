@@ -51,7 +51,7 @@ object WallPostsRefiner extends App {
   channel.exchangeDeclare(EXCHANGE_NAME, "direct")
   channel.queueDeclare(QUEUE_NAME, true, false, false, null)
   channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
-  channel.basicQos(10);
+  channel.basicQos(100);
 
   val consumer = new QueueingConsumer(channel);
   channel.basicConsume(QUEUE_NAME, false, consumer);
