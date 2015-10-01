@@ -59,8 +59,8 @@ class RichQueuePersitenceSpec(_system: ActorSystem) extends BFSTestSpec(_system)
       e2.msg should be (RichQueue.Item(Task("task2", idsGr(0))))
       queue1 ! Confirm(e2.deliveryId)
 
-      //queue1 ! HierarchicalSnapshotStore.SaveSnapshot()
-      //expectNoMsg(1.seconds)
+      //for Travis-Ci try 1
+      expectNoMsg(1.seconds)
       queue1 ! PoisonPill
 
       val queue2 = system.actorOf(Props(new TestRichQueueActor), "Queue2")

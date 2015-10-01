@@ -64,6 +64,9 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val e2 = expectMsgClass(classOf[Envelop])
       e2.msg should be (Used.Filtered(Seq()))
       used ! Confirm(e2.deliveryId)
+
+      //for Travis-Ci try 1
+      expectNoMsg(1.seconds)
     }
 
     "filter some items" in {
@@ -75,6 +78,8 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val seq2 = Seq[VKID](3, 4, 5)
 
       used ! Used.InsertAndFilter(seq1)
+      //for Travis-Ci try 1
+      expectNoMsg(1.seconds)
       val e1 = expectMsgClass(classOf[Envelop])
       e1.msg should be (Used.Filtered(seq1))
       used ! Confirm(e1.deliveryId)
@@ -83,6 +88,9 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val e2 = expectMsgClass(classOf[Envelop])
       e2.msg should be (Used.Filtered(seq2.toSet.diff(seq1.toSet).toSeq))
       used ! Confirm(e2.deliveryId)
+
+      //for Travis-Ci try 1
+      expectNoMsg(1.seconds)
     }
 
     "redeliver messages after dying" in {
@@ -95,6 +103,8 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val e1 = expectMsgClass(classOf[Envelop])
       e1.msg should be (Used.Filtered(Seq(33)))
 
+      //for Travis-Ci try 1
+      expectNoMsg(1.seconds)
       used ! PoisonPill
 
       val used1 = system.actorOf(Props(new JedisUsedActor))

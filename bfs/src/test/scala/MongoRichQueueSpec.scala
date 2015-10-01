@@ -17,7 +17,7 @@ object MongoRichQueueSpec {
     s"""
     queue {
       mongodb {
-        host = localhost
+        host = 127.0.0.1
         port = 27017
         database = vkcrawler_queue_test
         queue = queue
@@ -46,7 +46,7 @@ class MongoRichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     var db = mongoClient(conf.getString("queue.mongodb.database"))
     var col = db(conf.getString("queue.mongodb.queue"))
 
-    //db.dropDatabase
+    db.dropDatabase
     system.shutdown()
   }
 
