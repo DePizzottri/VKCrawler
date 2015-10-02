@@ -22,6 +22,8 @@ object WholeIntegrationSpec {
 
   def config = ConfigFactory.parseString(
     """
+      queue.mongodb.database = vkcrawler_test_queue_whole
+      graph.mongodb.database = vkcrawler_test_friends_whole
     """.stripMargin
   )
 }
@@ -31,7 +33,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem(
     "WholeIntegrationSpecSystem",
     WholeIntegrationSpec.config.withFallback(
-      QueueMongoDBIntegration.config.withFallback(
+      MongoRichQueueSpec.config.withFallback(
         ExchangeRabbitMQSpec.config.withFallback(
           GraphSaverMongoDBIntegrationSpec.config.withFallback(
             JedisUsedSpec.config.withFallback(
@@ -47,15 +49,18 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   override def afterAll {
     //cleanup
+    system.shutdown()
+
     val conf = system.settings.config
-    val mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+    val qmongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
 
     //queue
-    val qdb = mongoClient(conf.getString("queue.mongodb.database"))
+    val qdb = qmongoClient(conf.getString("queue.mongodb.database"))
     qdb.dropDatabase
 
     //graph
-    val gdb = mongoClient(conf.getString("graph.mongodb.database"))
+    val gmongoClient = MongoClient(conf.getString("graph.mongodb.host"), conf.getInt("graph.mongodb.port"))
+    val gdb = gmongoClient(conf.getString("graph.mongodb.database"))
     gdb.dropDatabase
 
     //used
@@ -64,8 +69,6 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     jedis.del(uidsSet)
 
     //rabbit?
-
-    system.shutdown()
   }
 
   "All integrated BFS actors " must {
@@ -73,8 +76,15 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import vkcrawler.Common._
 
       //creating
-      class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
-      val queue = system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+      //class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
+      class RichQueueMongoDBActor extends ReliableRichQueueActor {
+        class MongoBackendActor extends RichQueueBackendActor with MongoRichQueueBackend
+        override val persistenceId = "queue-whole-int"
+        override def createBackend = new MongoBackendActor
+        override val demandThreshold = 2
+      }
+
+      val queue = system.actorOf(Props(new RichQueueMongoDBActor), "QueueActor")
 
       val bfspath = ActorPath.fromString(system.toString+"/user/BFSActor")
 
@@ -84,21 +94,28 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       class RabbitMQExchangeActor extends ReliableExchangeActor(
         bfspath,
         queue.path
-      ) with RabbitMQExchangeBackend
+      ) with RabbitMQExchangeBackend {
+        override val persistenceId = "exchange-whole-int"
+      }
       val exchange = system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
 
       class GraphSaverMongoDBActor extends ReliableGraphActor with ReliableMongoDBGraphSaverBackend
       val graph = system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
 
-      class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
+      class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend {
+        override val persistenceId = "used-whole-int"
+      }
       val used = system.actorOf(Props(new JedisUsedActor), "UsedActor")
 
-      val bfs = system.actorOf(Props(new ReliableBFSActor(graph.path, used.path, exchange.path)), "BFSActor")
+      class WholeBFSActor extends ReliableBFSActor(graph.path, used.path, exchange.path) {
+        override val persistenceId = "bfs-whole-int"
+      }
+      val bfs = system.actorOf(Props(new WholeBFSActor), "BFSActor")
 
       import ReliableMessaging._
 
       //init
-      queue ! Envelop(1, Queue.Push(Seq(1l)))
+      queue ! Envelop(1, RichQueue.Push(Seq(1l)))
       expectMsg(Confirm(1))
 
       used ! Used.InsertAndFilter(Seq(1l))
@@ -112,18 +129,17 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
         import vkcrawler.Common._
 
         import scala.concurrent.ExecutionContext.Implicits.global
-        system.scheduler.schedule(20.milliseconds, 20.milliseconds, self, "Run")
+        system.scheduler.schedule(100.milliseconds, 100.milliseconds, self, "Run")
 
         override def persistenceId: String = "crawler-actor-id"
 
         override def processCommand: Receive = {
           case "Run" => {
-            deliver(Queue.Pop, queue.path)
+            deliver(RichQueue.Pop(Seq("task1")), queue.path)
           }
-          case Queue.Empty => {
-          }
-          case Queue.Items(items) => {
-            items.foreach{ id =>
+          case RichQueue.Item(task) => {
+            //println(task)
+            task.data.foreach{ id =>
               deliver(BFS.Friends(id, g.getOrElse(id, Seq())), exchange.path)
             }
           }
@@ -132,7 +148,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val crawler = system.actorOf(Props(new Crawler), "CrawlerActor")
 
-      expectNoMsg(2.seconds)
+      expectNoMsg(10.seconds)
 
       val conf = system.settings.config
       //check saved graph
@@ -157,12 +173,13 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       //check emitted from excahnge
 
       friendsConsumer.consumeOne
-      friendsConsumer.consumeOne
+      //friendsConsumer.consumeOne
       newUsersConsumer.consumeOne
-      newUsersConsumer.consumeOne
+      //newUsersConsumer.consumeOne
 
-      friendsConsumer.published should be (Seq("Friends(1,List(2, 3))", "Friends(2,List(4))"))
-      newUsersConsumer.published should be (Seq("NewUsers(List(2, 3))", "NewUsers(List(4))"))
+      //friendsConsumer.published should be (Seq("Friends(1,List(2, 3))", "Friends(2,List(4))"))
+      friendsConsumer.published should be (Seq("Friends(1,List(2, 3))"))
+      newUsersConsumer.published should be (Seq("NewUsers(List(2, 3))"))
     }
   }
 }

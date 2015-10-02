@@ -49,7 +49,7 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       class LocalUsedActor extends UsedActor with LocalUsedBackend
       class TestRichQueueActor extends ReliableRichQueueActor {
         class LocalBackendActor extends RichQueueBackendActor with LocalRichQueueBackend
-        override def persistenceId = "test-rich-queue-idwhole"
+        override def persistenceId = "test-rich-queue-id-whole"
         override def createBackend = new LocalBackendActor
         override val demandThreshold = 2
       }
@@ -68,12 +68,13 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val bfs = system.actorOf(Props(new BFSActor(graph.path, used.path, exchange.path)), "BFSActor")
 
-      queue ! RichQueue.Push(Seq[VKID](1))
+      queue ! RichQueue.Push(Seq(1l))
 
       val g = Map[VKID, Seq[VKID]](1l -> Seq[VKID](2l, 3l), 2l->Seq[VKID](4l), 4l->Seq(5l))
 
       class Crawler extends Actor {
         import vkcrawler.Common._
+        import ReliableMessaging._
 
         import scala.concurrent.ExecutionContext.Implicits.global
         system.scheduler.schedule(20.milliseconds, 20.milliseconds, self, "Run")
@@ -82,18 +83,18 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
           case "Run" => {
             queue ! RichQueue.Pop(Seq("type1"))
           }
-          case RichQueue.Item(task) => {
-            println(task)
-            task.data.foreach{ id =>
+          case Envelop(deliveryId, RichQueue.Item(task)) => {
+            task.data.foreach { id =>
               exchange ! BFS.Friends(id, g.getOrElse(id, Seq()))
             }
+            sender ! Confirm(deliveryId)
           }
         }
       }
 
       val crawler = system.actorOf(Props(new Crawler), "CrawlerActor")
 
-      expectNoMsg(3.seconds)
+      expectNoMsg(5.seconds)
 
       graph ! "get"
 

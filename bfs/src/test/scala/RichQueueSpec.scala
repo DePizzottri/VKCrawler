@@ -78,5 +78,35 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       e6.msg should be (RichQueue.Item(Task("task1", ids1)))
       queue ! Confirm(e6.deliveryId)
     }
+
+    "works with small queue " in {
+      class TestRichQueueActor extends ReliableRichQueueActor {
+        class LocalBackendActor extends RichQueueBackendActor with LocalRichQueueBackend
+        override val persistenceId = "test-rich-queue-id2"
+        override def createBackend = new LocalBackendActor
+        override val demandThreshold = 2
+      }
+
+      val queue = system.actorOf(Props(new TestRichQueueActor))
+
+      val id = Seq(1l)
+
+      queue ! RichQueue.Push(id)
+
+      queue ! RichQueue.Pop(List("task1"))
+      val e2 = expectMsgClass(classOf[Envelop])
+      e2.msg should be (RichQueue.Item(Task("task1", id)))
+      queue ! Confirm(e2.deliveryId)
+
+      queue ! RichQueue.Pop(List("task1"))
+      val e3 = expectMsgClass(classOf[Envelop])
+      e3.msg should be (RichQueue.Item(Task("task1", id)))
+      queue ! Confirm(e3.deliveryId)
+
+      queue ! RichQueue.Pop(List("task2"))
+      val e4 = expectMsgClass(classOf[Envelop])
+      e4.msg should be (RichQueue.Item(Task("task2", id)))
+      queue ! Confirm(e4.deliveryId)
+    }
   }
 }
