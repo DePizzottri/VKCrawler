@@ -47,6 +47,19 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   import vkcrawler.bfs._
 
+  def cleanRedis = {
+    //clean redis
+    val conf = system.settings.config
+    val jedis = new Jedis(conf.getString("used.redis.host"), conf.getInt("used.redis.port"))
+    val uidsSet = conf.getString("used.redis.setName")
+    jedis.del(uidsSet)
+  }
+
+  override def beforeAll {
+    //used
+    cleanRedis
+  }
+
   override def afterAll {
     //cleanup
     system.shutdown()
@@ -64,9 +77,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
     gdb.dropDatabase
 
     //used
-    val jedis = new Jedis(conf.getString("used.redis.host"), conf.getInt("used.redis.port"))
-    val uidsSet = conf.getString("used.redis.setName")
-    jedis.del(uidsSet)
+    cleanRedis
 
     //rabbit?
   }
