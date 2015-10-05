@@ -75,9 +75,9 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
       val ins = (1l to popSize * 2).toSeq
       queue ! Queue.Push(ins)
       queue ! Queue.Pop
-      expectMsg(Envelop(2, Queue.Items(1l to popSize)))
+      expectMsg(10.seconds, Envelop(2, Queue.Items(1l to popSize)))
       queue ! Queue.Pop
-      expectMsg(Envelop(3, Queue.Items((1l to popSize).map{x => x + popSize})))
+      expectMsg(10.seconds, Envelop(3, Queue.Items((1l to popSize).map{x => x + popSize})))
     }
 
     "be idempotent " in {
@@ -92,9 +92,9 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
       val ins = Seq[VKID](1, 1, 1)
       queue ! Queue.Push(ins)
       queue ! Queue.Pop
-      expectMsg(Envelop(1, Queue.Items(1l to popSize)))
+      expectMsg(10.seconds, Envelop(1, Queue.Items(1l to popSize)))
       queue ! Queue.Pop
-      expectMsg(Envelop(2, Queue.Items((1l to popSize).map{x => x + popSize})))
+      expectMsg(10.seconds, Envelop(2, Queue.Items((1l to popSize).map{x => x + popSize})))
     }
   }
 }
