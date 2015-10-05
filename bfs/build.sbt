@@ -9,7 +9,7 @@ resolvers ++= Seq (
 
 libraryDependencies ++= Seq(
   Akka.actor,
-  Akka.remote % "run",
+  Akka.remote,
   Akka.persistence,
   Akka.testKit,
   Akka.persistencePluginCasbah,
@@ -40,7 +40,7 @@ javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
 
 fork := true
 
-fork in Test := false
+parallelExecution in Test := false
 
 test in assembly := {}
 
