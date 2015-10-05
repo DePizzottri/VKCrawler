@@ -54,7 +54,8 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
         used ! Used.InsertAndFilter((1 to 200).map(x => scala.util.Random.nextInt(1000000).asInstanceOf[VKID]).toSeq)
         //expectMsgClass(1.seconds, classOf[Used.Filtered])
       }
-      receiveN(num, 10.seconds)
+      //more timeout for Travis
+      receiveN(num, 30.seconds)
       val dur = System.currentTimeMillis - start
       println(s"Persistant used throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
     }
