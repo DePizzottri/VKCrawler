@@ -40,6 +40,8 @@ javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
 
 fork := true
 
+fork in Test := false
+
 test in assembly := {}
 
 aspectjSettings
