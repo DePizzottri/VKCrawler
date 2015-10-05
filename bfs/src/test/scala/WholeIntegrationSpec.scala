@@ -168,6 +168,11 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       //check used
       val jedis = new Jedis(conf.getString("used.redis.host"), conf.getInt("used.redis.port"))
       val uidsSet = conf.getString("used.redis.setName")
+      import scala.collection.JavaConverters._
+      if (jedis.scard(uidsSet) != 5)
+      {
+        println(jedis.smembers(uidsSet).asScala)
+      }
       jedis.scard(uidsSet) should be (5)
 
       //check emitted from excahnge
