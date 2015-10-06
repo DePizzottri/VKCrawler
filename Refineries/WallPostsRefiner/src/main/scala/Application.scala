@@ -16,6 +16,8 @@ import vkcrawler.DataModel.SprayJsonSupport._
 
 import com.mongodb.util.JSON
 
+import org.joda.time.DateTime
+
 object WallPostsRefiner extends App {
   RegisterJodaTimeConversionHelpers()
 
@@ -64,13 +66,27 @@ object WallPostsRefiner extends App {
   //continuously
   while(true) {
     //receive message from rabbit
+
     val delivery = consumer.nextDelivery()
     val message = new String(delivery.getBody())
 
     //parse
-    val obj = JSON.parse(message)
+    val obj = JSON.parse(message).asInstanceOf[BasicDBObject]
 
-    coll.insert(obj.asInstanceOf[BasicDBObject])
+    val dateTime = obj.getAs[Int]("date") match {
+      case Some(dt) => {
+        val ldt: Long = dt
+        obj += "date" -> new DateTime(ldt * 1000L)
+      }
+      case None => println("No date field")
+    }
+
+    coll.update(
+      q = MongoDBObject("owner_id" -> obj.as[Int]("owner_id"), "date" -> obj.as[DateTime]("date")),
+      o = obj,
+      upsert = true,
+      multi = false
+    )
 
     //confirm delivery
     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);

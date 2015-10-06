@@ -20,6 +20,9 @@ function init() {
     db.queue.createIndex({"wall_posts.lastUseDate":1})
 
     db.friends.createIndex({"id":1})
+
+    db.wall_posts.createIndex({owner_id:1, date:1})
+    //db.wall_posts.createIndex({owner_id:1, date:1, id:1}, {unique:true})
 }
 
 function past(m) {
