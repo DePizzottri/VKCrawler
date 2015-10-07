@@ -50,32 +50,35 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val ids1 = (for(i <- 1l to taskSize) yield {i})
       val ids2 = (for(i <- 1l to taskSize) yield {i+taskSize})
 
+      val data1 = ids1.map{x => TaskData(x, None)}
+      val data2 = ids2.map{x => TaskData(x, None)}
+
       queue ! RichQueue.Push(ids1.toSeq)
       queue ! RichQueue.Push(ids2.toSeq)
 
       queue ! RichQueue.Pop(List("task1"))
       val e2 = expectMsgClass(classOf[Envelop])
-      e2.msg should be (RichQueue.Item(Task("task1", ids1)))
+      e2.msg should be (RichQueue.Item(Task("task1", data1)))
       queue ! Confirm(e2.deliveryId)
 
       queue ! RichQueue.Pop(List("task1"))
       val e3 = expectMsgClass(classOf[Envelop])
-      e3.msg should be (RichQueue.Item(Task("task1", ids2)))
+      e3.msg should be (RichQueue.Item(Task("task1", data2)))
       queue ! Confirm(e3.deliveryId)
 
       queue ! RichQueue.Pop(List("task2"))
       val e4 = expectMsgClass(classOf[Envelop])
-      e4.msg should be (RichQueue.Item(Task("task2", ids1)))
+      e4.msg should be (RichQueue.Item(Task("task2", data1)))
       queue ! Confirm(e4.deliveryId)
 
       queue ! RichQueue.Pop(List("task2"))
       val e5 = expectMsgClass(classOf[Envelop])
-      e5.msg should be (RichQueue.Item(Task("task2", ids2)))
+      e5.msg should be (RichQueue.Item(Task("task2", data2)))
       queue ! Confirm(e5.deliveryId)
 
       queue ! RichQueue.Pop(List("task1"))
       val e6 = expectMsgClass(classOf[Envelop])
-      e6.msg should be (RichQueue.Item(Task("task1", ids1)))
+      e6.msg should be (RichQueue.Item(Task("task1", data1)))
       queue ! Confirm(e6.deliveryId)
     }
 
@@ -90,22 +93,23 @@ class RichQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val queue = system.actorOf(Props(new TestRichQueueActor))
 
       val id = Seq(1l)
+      val data = id.map{x => TaskData(x, None)}
 
       queue ! RichQueue.Push(id)
 
       queue ! RichQueue.Pop(List("task1"))
       val e2 = expectMsgClass(classOf[Envelop])
-      e2.msg should be (RichQueue.Item(Task("task1", id)))
+      e2.msg should be (RichQueue.Item(Task("task1", data)))
       queue ! Confirm(e2.deliveryId)
 
       queue ! RichQueue.Pop(List("task1"))
       val e3 = expectMsgClass(classOf[Envelop])
-      e3.msg should be (RichQueue.Item(Task("task1", id)))
+      e3.msg should be (RichQueue.Item(Task("task1", data)))
       queue ! Confirm(e3.deliveryId)
 
       queue ! RichQueue.Pop(List("task2"))
       val e4 = expectMsgClass(classOf[Envelop])
-      e4.msg should be (RichQueue.Item(Task("task2", id)))
+      e4.msg should be (RichQueue.Item(Task("task2", data)))
       queue ! Confirm(e4.deliveryId)
     }
   }

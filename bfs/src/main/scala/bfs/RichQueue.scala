@@ -72,10 +72,6 @@ abstract class ReliableRichQueueActor extends ReliableMessaging with Stash {
 
   override def processRecover: Receive = {
     case evt: Evt => updateState(evt)
-    // case SnapshotOffer(_, snapshot:Map[String, Queue[Task]]) => {
-    //   println(s"Snapshot offer $snapshot")
-    //   queues = snapshot
-    // }
     case msg:RecoveryCompleted => Unit
   }
 

@@ -47,16 +47,19 @@ class RichQueuePersitenceSpec(_system: ActorSystem) extends BFSTestSpec(_system)
       val idsAll = (for(i <- 1l to taskSize*2) yield {i})
       val idsGr = idsAll.grouped(taskSize).toArray
 
+      val dataAll = idsAll.map{TaskData(_, None)}
+      val dataGr = dataAll.grouped(taskSize).toArray
+
       queue1 ! RichQueue.Push(idsAll)
 
       queue1 ! RichQueue.Pop(List("task1"))
       val e1 = expectMsgClass(classOf[Envelop])
-      e1.msg should be (RichQueue.Item(Task("task1", idsGr(0))))
+      e1.msg should be (RichQueue.Item(Task("task1", dataGr(0))))
       queue1 ! Confirm(e1.deliveryId)
 
       queue1 ! RichQueue.Pop(List("task2"))
       val e2 = expectMsgClass(classOf[Envelop])
-      e2.msg should be (RichQueue.Item(Task("task2", idsGr(0))))
+      e2.msg should be (RichQueue.Item(Task("task2", dataGr(0))))
       queue1 ! Confirm(e2.deliveryId)
 
       //for Travis-Ci try 1
@@ -67,12 +70,12 @@ class RichQueuePersitenceSpec(_system: ActorSystem) extends BFSTestSpec(_system)
 
       queue2 ! RichQueue.Pop(List("task1"))
       val e3 = expectMsgClass(classOf[Envelop])
-      e3.msg should be (RichQueue.Item(Task("task1", idsGr(1))))
+      e3.msg should be (RichQueue.Item(Task("task1", dataGr(1))))
       queue2 ! Confirm(e3.deliveryId)
 
       queue2 ! RichQueue.Pop(List("task2"))
       val e4 = expectMsgClass(classOf[Envelop])
-      e4.msg should be (RichQueue.Item(Task("task2", idsGr(1))))
+      e4.msg should be (RichQueue.Item(Task("task2", dataGr(1))))
       queue2 ! Confirm(e4.deliveryId)
     }
   }

@@ -7,7 +7,9 @@ import vkcrawler.Common.VKID
 
 import spray.json._
 
-case class Task(`type`:String, data: Seq[VKID])
+case class TaskData(id:VKID, lastUseDate:Option[DateTime])
+
+case class Task(`type`:String, data: Seq[TaskData])
 case class TaskResult(`type`:String, data:JsValue)
 
 

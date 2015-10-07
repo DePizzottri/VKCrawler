@@ -150,8 +150,8 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
           }
           case RichQueue.Item(task) => {
             //println(task)
-            task.data.foreach{ id =>
-              deliver(BFS.Friends(id, g.getOrElse(id, Seq())), exchange.path)
+            task.data.foreach{ taskData =>
+              deliver(BFS.Friends(taskData.id, g.getOrElse(taskData.id, Seq())), exchange.path)
             }
           }
         }

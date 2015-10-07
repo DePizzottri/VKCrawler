@@ -84,8 +84,8 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
             queue ! RichQueue.Pop(Seq("type1"))
           }
           case Envelop(deliveryId, RichQueue.Item(task)) => {
-            task.data.foreach { id =>
-              exchange ! BFS.Friends(id, g.getOrElse(id, Seq()))
+            task.data.foreach { taskData =>
+              exchange ! BFS.Friends(taskData.id, g.getOrElse(taskData.id, Seq()))
             }
             sender ! Confirm(deliveryId)
           }

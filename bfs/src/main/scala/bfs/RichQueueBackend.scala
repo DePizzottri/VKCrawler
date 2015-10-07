@@ -4,6 +4,8 @@ import vkcrawler.Common._
 import vkcrawler.DataModel._
 import scala.collection.immutable.Map
 
+import org.joda.time.DateTime
+
 trait RichQueueBackend {
   def push(ids:Seq[VKID]): Unit
   def pop(`type`:String, taskSize:Int, count:Int): Seq[Task]
@@ -25,13 +27,15 @@ trait LocalRichQueueBackend extends RichQueueBackend {
   def pop(`type`:String, taskSize:Int, count:Int): Seq[Task] = {
     //println(s"Pop: $queue $taskSize $count")
     val ret = (for (j <- 1 to count) yield {
-      val ids = (
-        for (i <- 1 to taskSize if !queue.isEmpty) yield {queue.dequeue}
+      val datas = (
+        for (i <- 1 to taskSize if !queue.isEmpty) yield {
+          TaskData(queue.dequeue, None)
+        }
       )
-      Task(`type`, ids)
+      Task(`type`, datas)
     })
 
-    ret.filter{t => t.data.size != 0}.foreach{t => queue ++= t.data}
+    ret.filter{t => t.data.size != 0}.foreach{t => queue ++= t.data.map{_.id}}
 
     ret.filter{t => t.data.size != 0}
   }
@@ -44,6 +48,9 @@ import java.util.Date
 
 trait MongoRichQueueBackend extends RichQueueBackend {
   this: akka.actor.Actor =>
+
+  import com.mongodb.casbah.commons.conversions.scala._
+  RegisterJodaTimeConversionHelpers()
 
   val conf = context.system.settings.config
 
@@ -69,13 +76,13 @@ trait MongoRichQueueBackend extends RichQueueBackend {
     val tryRet = Try {
       val ret = col.find(
         MongoDBObject.empty,
-        MongoDBObject("id" -> 1)
+        MongoDBObject("id" -> 1, `type`+".lastUseDate" -> 1)
       )
       .sort(MongoDBObject(`type`+".lastUseDate"-> 1))
       .take(taskSize*count)
-      .flatMap { doc =>
+      .map { doc =>
         bulkUpdate.find(doc).update($set(`type`+".lastUseDate" -> new Date))
-        doc.getAs[VKID]("id")
+        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{_.as[DateTime]("lastUseDate")})
       }.toArray
 
       bulkUpdate.execute
