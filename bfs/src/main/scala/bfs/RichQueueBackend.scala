@@ -90,12 +90,13 @@ trait MongoRichQueueBackend extends RichQueueBackend {
       ret
     }
 
+
     tryRet match {
       case Success(r) =>  {
         (for(t <- r.grouped(taskSize)) yield {
           Task(`type`, t)
         })
-        .toSeq
+        .toVector
       }
       case Failure(e) => {
         log.warning("Failure in queue pop {}", e)
