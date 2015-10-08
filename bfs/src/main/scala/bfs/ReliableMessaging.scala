@@ -99,19 +99,19 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
   context.system.scheduler.schedule(
     loadDuration("reliable-messaging.snapshot-interval"),
     loadDuration("reliable-messaging.snapshot-interval")) {
-    self ! HierarchicalSnapshotStore.SaveSnapshot()//SaveDeliverySnapshot()
+    self ! HierarchicalSnapshotStore.SaveSnapshot//SaveDeliverySnapshot()
   }
 }
 
 object HierarchicalSnapshotStore {
-  case class SaveSnapshot()
+  final case object SaveSnapshot
 }
 
 trait HierarchicalSnapshotStore {
   this: PersistentActor =>
 
   def snapshotReceiveing: Receive = {
-    case HierarchicalSnapshotStore.SaveSnapshot() => {
+    case HierarchicalSnapshotStore.SaveSnapshot => {
       storeSnapshot(Nil)
     }
   }

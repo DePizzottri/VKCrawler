@@ -121,4 +121,89 @@ class ReliableMessagingSpec(_system:ActorSystem) extends BFSTestSpec(_system) {
       expectNoMsg(3.seconds)
     }
   }
+
+  "Hierarchical snapshot " must {
+    "save snapshots correctly" in {
+      import ReliableMessaging._
+
+      class Lvl1Actor extends ReliableMessaging {
+        override def persistenceId: String = "hier-snapshot-test-id"
+        override def redeliverInterval = 1.seconds
+        override def processCommand: Receive = {
+          case "get1" => sender ! state1
+        }
+        var state1 = ""
+        override def storeSnapshot(childStates: List[Any]):Unit = {
+          super.storeSnapshot("LVL1" :: childStates)
+        }
+        override def restoreFromSnapshot(states:List[Any]): Unit = {
+          println(s"Lvl1 restore $states")
+          state1 = states.head.asInstanceOf[String]
+          super.restoreFromSnapshot(states.tail)
+        }
+      }
+
+      class Lvl2Actor extends Lvl1Actor {
+        var state2 = "0xdeadbeef"
+        override def processCommand:Receive = super.processCommand orElse {
+          case "get2" => sender ! state2
+          case s:String => deliver(s+s, sender.path)
+        }
+
+        override def storeSnapshot(childStates: List[Any]):Unit = {
+          super.storeSnapshot("LVL2" :: childStates)
+        }
+        override def restoreFromSnapshot(states:List[Any]): Unit = {
+          state2 = states.head.asInstanceOf[String]
+          super.restoreFromSnapshot(states.tail)
+        }
+      }
+
+      val act1 = system.actorOf(Props(new Lvl2Actor), "snap-actor-1")
+      val msg = "msgmsg"
+      act1 ! msg
+      expectMsg(Envelop(1, msg+msg))
+
+      act1 ! HierarchicalSnapshotStore.SaveSnapshot
+      act1 ! PoisonPill
+
+      expectNoMsg(2.seconds)
+
+      val act2 = system.actorOf(Props(new Lvl2Actor), "snap-actor-2")
+      expectMsg(Envelop(1, msg+msg))
+      act2 ! Confirm(1)
+
+      act2 ! "get1"
+      expectMsg("LVL1")
+      act2 ! "get2"
+      expectMsg("LVL2")
+    }
+
+    "call default save snapshot" in {
+      import ReliableMessaging._
+      class TestActor extends ReliableMessaging {
+        override def persistenceId: String = "def-snapshot-test-id"
+        override def redeliverInterval = 1.seconds
+        override def processCommand: Receive = {
+          case s:String => deliver(s+s, sender.path)
+        }
+      }
+
+      val act1 = system.actorOf(Props(new TestActor), "def-snap-actor-1")
+      val msg = "msgdata"
+      act1 ! msg
+      expectMsg(Envelop(1, msg+msg))
+
+      //no confirmation
+
+      act1 ! HierarchicalSnapshotStore.SaveSnapshot
+      act1 ! PoisonPill
+
+      expectNoMsg(3.seconds)
+
+      val act2 = system.actorOf(Props(new TestActor), "def-snap-actor-2")
+      expectMsg(Envelop(1, msg+msg))
+      act2 ! Confirm(1)
+    }
+  }
 }
