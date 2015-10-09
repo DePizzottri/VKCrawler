@@ -77,6 +77,8 @@ object Application extends App with SimpleRoutingApp {
       }
     }
 
+  val filterCity = conf.getInt("WEB.filterCity")
+
   lazy val postTask = {
     path("postTask") {
       post {
@@ -86,7 +88,7 @@ object Application extends App with SimpleRoutingApp {
               val flo = res.data.convertTo[Seq[UserInfo]]
               for(info <- flo) {
                 import UserInfoJsonSupport._
-                exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == 57).map(x => x.uid))
+                exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
                 exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
               }
 

@@ -203,20 +203,25 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
     const string type = obj->get("type").extract<string>();
     int dummyTzd = 0;
 
-    auto friendsIDs = obj->get("data").extract<Poco::JSON::Array::Ptr>();
+    //auto friendsIDs = obj->get("data").extract<Poco::JSON::Array::Ptr>();
+	auto crawlData = obj->get("data").extract<Poco::JSON::Array::Ptr>();
 
     //https://api.vk.com/method/friends.get?user_id=$uid&fields=city
 
     Poco::JSON::Array::Ptr friends(new Poco::JSON::Array);
 
     //make requests
-    for (size_t i = 0; i < friendsIDs->size(); ++i)
+	for (auto varUser : *crawlData)
     {
         Poco::JSON::Object::Ptr friends_raw(new Poco::JSON::Object);
-        friends_raw->set("uid", friendsIDs->getElement<int>(i));
+		auto taskData = varUser.extract<JSON::Object::Ptr>();
+
+		const auto id = taskData->get("id").extract<int>();
+
+		friends_raw->set("uid", id);
         try {
-            friends_raw->set("friends", friends_get(friendsIDs->getElement<int>(i)));
-            auto userInfo = getUserInfo(friendsIDs->getElement<int>(i));
+			friends_raw->set("friends", friends_get(id));
+			auto userInfo = getUserInfo(id);
             friends_raw->set("firstName", userInfo->get("first_name").extract<string>());
             friends_raw->set("lastName", userInfo->get("last_name").extract<string>());
             if (userInfo->has("city"))
