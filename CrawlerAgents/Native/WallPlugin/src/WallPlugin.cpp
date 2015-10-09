@@ -69,12 +69,12 @@ std::istream& requestWithoutTimeout(Poco::Net::HTTPClientSession & session, std:
 
 			return crespStream;
 		}
-		catch (Poco::TimeoutException & e) {
+		catch (Poco::TimeoutException & ) {
 		}
 	}
 }
 
-void getWall(int uid, Poco::JSON::Array::Ptr & result)
+void getWall(int uid, Poco::JSON::Array::Ptr & result, Poco::Timestamp const& lastUseDate)
 {
     auto& app = Poco::Util::Application::instance();
     using namespace std;
@@ -119,8 +119,9 @@ void getWall(int uid, Poco::JSON::Array::Ptr & result)
 
     const int step = 10;
     int offset = 0;
+	bool stop = false;
 
-    for (size_t butchNum = 0; butchNum<floor(wallCount/(double)step); ++butchNum) {
+    for (size_t butchNum = 0; butchNum<floor(wallCount/(double)step) && !stop; ++butchNum) {
 		URI uri("/method/wall.get");
 		uri.addQueryParameter("owner_id", Poco::NumberFormatter::format(uid));
 		uri.addQueryParameter("offset", Poco::NumberFormatter::format(offset));
@@ -144,6 +145,12 @@ void getWall(int uid, Poco::JSON::Array::Ptr & result)
 
 			for (auto record : *wallRecords) {
 				result->add(record);
+				long long unixdate = record.extract<Object::Ptr>()->get("date").extract<int>();
+				auto date = Timestamp(unixdate * 1000ll *1000ll);
+				if (date < lastUseDate) {
+					stop = true;
+					break;
+				}
 			}
 		} 
 		catch (Poco::Exception & e) 
@@ -173,17 +180,25 @@ Poco::JSON::Object::Ptr WallPlugin::doProcess(Poco::JSON::Object::Ptr const& obj
 
     //auto friendsIDs = obj->get("ids").extract<Poco::JSON::Array::Ptr>();
 
-    auto crawlIDs = obj->get("data").extract<Poco::JSON::Array::Ptr>();
+    auto crawlData = obj->get("data").extract<Poco::JSON::Array::Ptr>();
 
     Poco::JSON::Array::Ptr ret(new Poco::JSON::Array);
 
-	for (size_t i = 0; i < crawlIDs->size(); ++i)
+	for (auto varUser: *crawlData)
     {
-        Poco::JSON::Object::Ptr (new Poco::JSON::Object);
+		auto taskData = varUser.extract<JSON::Object::Ptr>();
 
-		auto uid = crawlIDs->getElement<int>(i);
+		auto uid = taskData->get("id").extract<int>();
 
-        getWall(uid, ret);
+		if (taskData->has("lastUseDate")) {
+			auto strLastUseDate = taskData->get("lastUseDate").extract<string>();
+			int tzd = 0;
+			auto date = Poco::DateTimeParser::parse(Poco::DateTimeFormat::ISO8601_FRAC_FORMAT, strLastUseDate, tzd);
+			auto str = Poco::DateTimeFormatter::format(date, Poco::DateTimeFormat::ISO8601_FRAC_FORMAT);
+			getWall(uid, ret, date.timestamp());
+		}
+		else
+			getWall(uid, ret, Timestamp(0));
     }
 
     Poco::JSON::Object::Ptr retObject(new Poco::JSON::Object);
