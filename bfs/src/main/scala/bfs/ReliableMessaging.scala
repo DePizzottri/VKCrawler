@@ -2,7 +2,7 @@ package vkcrawler.bfs
 
 import akka.actor.{Actor, ActorPath}
 import scala.concurrent.duration._
-import kamon.Kamon
+//import kamon.Kamon
 
 object ReliableMessaging {
   case class Envelop(deliveryId:Long, msg:Any)
@@ -71,7 +71,7 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
 
   def updateStateMsg(evt: ALODEvt): Unit = evt match {
     case MsgSent(msg, dest) =>
-      deliver(dest, deliveryId => Envelop(deliveryId, msg))
+      deliver(dest)(deliveryId => Envelop(deliveryId, msg))
 
     case MsgConfirmed(deliveryId) => confirmDelivery(deliveryId)
   }
@@ -93,7 +93,7 @@ trait ReliableMessaging extends PersistentActor with AtLeastOnceDelivery with En
   context.system.scheduler.schedule(
     loadDuration("reliable-messaging.unconfirmed-interval"),
     loadDuration("reliable-messaging.unconfirmed-interval")) {
-    Kamon.metrics.histogram(s"${self.path.name}/unconfirmed-messages").record(numberOfUnconfirmed)
+    //Kamon.metrics.histogram(s"${self.path.name}/unconfirmed-messages").record(numberOfUnconfirmed)
   }
 
   context.system.scheduler.schedule(

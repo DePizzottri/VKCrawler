@@ -30,7 +30,7 @@ import scala.util.{Success, Failure}
 import scala.language.postfixOps
 
 object Application extends App with SimpleRoutingApp {
-  kamon.Kamon.start()
+  //kamon.Kamon.start()
 
   implicit val system = ActorSystem("CrawlerWEBInterface-system")
 

@@ -12,19 +12,23 @@ object Common {
       val scalaTest = "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 
       val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
+
+      val protobuf = "com.google.protobuf" % "protobuf-java" % "2.5.0"
     }
 
     object Akka {
       val resolver = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
       val groupId = "com.typesafe.akka"
-      val version = "2.3.11"
+      val version = "2.4.0"
       val actor = groupId %% "akka-actor" % version
       val remote = groupId %% "akka-remote" % version
-      val persistence = groupId %% "akka-persistence-experimental" % version
+      val protobuf = groupId %% "akka-protobuf" % version
+      val persistence = groupId %% "akka-persistence" % version
       val testKit = groupId %% "akka-testkit" % version % "test"
 
-      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "0.4.2"
-      val persistencePluginInMemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % "1.0.3"
+      val imMemoryPersistenceResolver = "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven"
+      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "1.0.6"
+      val persistencePluginInMemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % "1.1.3"
     }
 
     object Spray {
@@ -43,7 +47,7 @@ object Common {
 
     object Kamon {
       val groupId = "io.kamon"
-      val version = "0.5.1"
+      val version = "0.5.2"
       val core = groupId %% "kamon-core" % version
       val akka = groupId %% "kamon-akka" % version
       val akka_remote = groupId %% "kamon-akka-remote" % version

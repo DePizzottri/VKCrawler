@@ -4,7 +4,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 import akka.actor._
 
 object Application extends App {
-  kamon.Kamon.start()
+  //kamon.Kamon.start()
 
   val params = List(
     ("bfs", "bfs.conf"),
