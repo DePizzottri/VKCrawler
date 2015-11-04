@@ -19,8 +19,8 @@ object ExchangeRabbitMQSpec {
     exchange {
       rabbitmq {
         host = localhost
-        username = vkcrawler
-        password = vkcrawler
+        username = guest
+        password = guest
         exchange_name = VKCrawler
       }
     }
@@ -100,7 +100,7 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val newUsers = BFS.NewUsers(Seq[VKID](2,3,4))
       exchange ! newUsers
       val eq = queue.expectMsgClass(classOf[Envelop])
-      eq.msg should be (Queue.Push(newUsers.users))
+      eq.msg should be (RichQueue.Push(newUsers.users))
       exchange ! Confirm(eq.deliveryId)
 
       expectNoMsg(500.milliseconds)

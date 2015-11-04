@@ -25,6 +25,8 @@ FriendsListCrawlPlugin
 Plugin crawls static info and social graph
 
 
+Windows build:
+--------------
 mkdir build
 cd build
 cmake -G "Visual Studio 12 2013" ..

@@ -242,8 +242,8 @@ Poco::JSON::Object::Ptr FakeFriendsAndInfoPlugin::doProcess(Poco::JSON::Object::
     //taskStatistics->set("processDate", Poco::DateTimeFormatter::format(Timestamp(), Poco::DateTimeFormat::ISO8601_FRAC_FORMAT));
 
     Poco::JSON::Object::Ptr ret(new Poco::JSON::Object);
-    //ret->set("task", taskStatistics);
-    ret->set("friends", friends);
+    ret->set("type", type);
+    ret->set("data", friends);
 
     return ret;
 }

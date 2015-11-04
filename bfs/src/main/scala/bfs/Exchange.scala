@@ -23,7 +23,7 @@ class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Ac
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      context.actorSelection(queueActorPath) ! Queue.Push(ids)
+      context.actorSelection(queueActorPath) ! RichQueue.Push(ids)
       //publish
       publish("new_users", msg)
     }
@@ -47,7 +47,7 @@ class ReliableExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) ex
       publish("friends", msg)
     }
     case msg@BFS.NewUsers(ids) => {
-      deliver(Queue.Push(ids), queueActorPath)
+      deliver(RichQueue.Push(ids), queueActorPath)
       //publish
       publish("new_users", msg)
     }

@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
 import redis.clients.jedis._
 
 object JedisUsedSpec {
-  private def getRandomCollection = Random.alphanumeric.take(5).mkString
+  def getRandomString = Random.alphanumeric.take(5).mkString
 
   def config = ConfigFactory.parseString(
     """
@@ -50,11 +50,15 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
 
+  class JedisUsedRandActor extends JedisUsedActor {
+    override val persistenceId = "jedis_used"+ JedisUsedSpec.getRandomString
+  }
+
   "JedisUsedActor " must {
     "insert and then filter same item" in {
       import ReliableMessaging._
 
-      val used = system.actorOf(Props(new JedisUsedActor))
+      val used = system.actorOf(Props(new JedisUsedRandActor))
       used ! Used.InsertAndFilter(Seq(13))
       val e1 = expectMsgClass(classOf[Envelop])
       e1.msg should be (Used.Filtered(Seq(13)))
@@ -70,7 +74,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import vkcrawler.Common._
       import ReliableMessaging._
 
-      val used = system.actorOf(Props(new JedisUsedActor))
+      val used = system.actorOf(Props(new JedisUsedRandActor))
       val seq1 = Seq[VKID](1, 2, 3, 4)
       val seq2 = Seq[VKID](3, 4, 5)
 
@@ -107,7 +111,7 @@ class JedisUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       import vkcrawler.Common._
       import ReliableMessaging._
 
-      val used = system.actorOf(Props(new JedisUsedActor))
+      val used = system.actorOf(Props(new JedisUsedRandActor))
       val start = System.currentTimeMillis
       val num = 10000
       for (x <- 1 to num) {

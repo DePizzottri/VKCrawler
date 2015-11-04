@@ -7,7 +7,7 @@ object MongoPersistanceSpecConfiguration {
     """
     akka.persistence.journal.plugin = "akka-contrib-mongodb-persistence-journal"
     akka.persistence.snapshot-store.plugin = "akka-contrib-mongodb-persistence-snapshot"
-    akka.contrib.persistence.mongodb.mongo.mongouri = "mongodb://192.168.1.9:27017/test_persistence"
+    akka.contrib.persistence.mongodb.mongo.mongouri = "mongodb://localhost:27017/test_persistence"
 
     akka.contrib.persistence.mongodb.mongo.journal-collection = "persistent_journal"
     akka.contrib.persistence.mongodb.mongo.journal-index = "journal_index"

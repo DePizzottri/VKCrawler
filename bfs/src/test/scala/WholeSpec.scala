@@ -24,7 +24,7 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem(
     "WholeIntegrationSpecSystem",
-    WholeSpec.config.withFallback(PersistanceSpecConfiguration.config)))
+    WholeSpec.config.withFallback(RichQueueSpec.config.withFallback(PersistanceSpecConfiguration.config))))
 
   import vkcrawler.bfs._
 
@@ -47,8 +47,13 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val p = TestProbe()
 
       class LocalUsedActor extends UsedActor with LocalUsedBackend
-      class LocalQueueActor extends QueueActor with LocalQueueBackend
-      val queue = system.actorOf(Props(new LocalQueueActor), "QueueActor")
+      class TestRichQueueActor extends ReliableRichQueueActor {
+        class LocalBackendActor extends RichQueueBackendActor with LocalRichQueueBackend
+        override def persistenceId = "test-rich-queue-id-whole"
+        override def createBackend = new LocalBackendActor
+        override val demandThreshold = 2
+      }
+      val queue = system.actorOf(Props(new TestRichQueueActor), "QueueActor")
 
       val bfspath = ActorPath.fromString(system.toString+"/user/BFSActor")
 
@@ -63,33 +68,33 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val bfs = system.actorOf(Props(new BFSActor(graph.path, used.path, exchange.path)), "BFSActor")
 
-      queue ! Queue.Push(Seq[VKID](1))
+      queue ! RichQueue.Push(Seq(1l))
 
       val g = Map[VKID, Seq[VKID]](1l -> Seq[VKID](2l, 3l), 2l->Seq[VKID](4l), 4l->Seq(5l))
 
       class Crawler extends Actor {
         import vkcrawler.Common._
+        import ReliableMessaging._
 
         import scala.concurrent.ExecutionContext.Implicits.global
         system.scheduler.schedule(20.milliseconds, 20.milliseconds, self, "Run")
 
         def receive = {
           case "Run" => {
-            queue ! Queue.Pop
+            queue ! RichQueue.Pop(Seq("type1"))
           }
-          case Queue.Empty => {
-          }
-          case Queue.Items(items) => {
-            items.foreach{ id =>
-              exchange ! BFS.Friends(id, g.getOrElse(id, Seq()))
+          case Envelop(deliveryId, RichQueue.Item(task)) => {
+            task.data.foreach { taskData =>
+              exchange ! BFS.Friends(taskData.id, g.getOrElse(taskData.id, Seq()))
             }
+            sender ! Confirm(deliveryId)
           }
         }
       }
 
       val crawler = system.actorOf(Props(new Crawler), "CrawlerActor")
 
-      expectNoMsg(1.seconds)
+      expectNoMsg(5.seconds)
 
       graph ! "get"
 

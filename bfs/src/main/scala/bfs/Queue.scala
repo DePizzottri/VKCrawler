@@ -8,7 +8,6 @@ import vkcrawler.Common._
 object Queue {
   case class Push(ids:Seq[VKID])
   case class Pop()
-  case class PopMany(num:Int)
   case class Items(ids:Seq[VKID])
   case class Empty()
 }
