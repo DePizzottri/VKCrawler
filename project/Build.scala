@@ -34,7 +34,7 @@ object Common {
     object Spray {
       val resolver = "spray repo" at "http://repo.spray.io"
       val groupId = "io.spray"
-      val version = "1.3.3"
+      val version = "1.3.2"
       val client = groupId %% "spray-client" % version
       val can = groupId %% "spray-can" % version
       val http = groupId %% "spray-http" % version
