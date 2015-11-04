@@ -147,7 +147,8 @@ void getWall(int uid, Poco::JSON::Array::Ptr & result, Poco::Timestamp const& la
 				result->add(record);
 				long long unixdate = record.extract<Object::Ptr>()->get("date").extract<int>();
 				auto date = Timestamp(unixdate * 1000ll *1000ll);
-				if (date < lastUseDate) {
+				//if (date < lastUseDate) {
+				if ((date < lastUseDate) && (Poco::Timespan(lastUseDate - date) > Poco::Timespan(30, 0, 0, 0, 0))) {
 					stop = true;
 					break;
 				}

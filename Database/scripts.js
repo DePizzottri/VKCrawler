@@ -11,7 +11,7 @@ function dropAll() {
 };
 
 function init() {
-    use vkcrawler_test_1
+    use ulan_ude
     //db.tasks_frequency.insert({"type":"friends_list", "freq":NumberLong(3*60*60*1000)}); //initially every 3 hours
 
     //2763114 - UU
