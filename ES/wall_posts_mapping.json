@@ -1,0 +1,1220 @@
+{
+    "mappings" : {
+      "logs" : {
+        "properties" : {
+          "@timestamp" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "@version" : {
+            "type" : "string"
+          },
+          "attachments" : {
+            "properties" : {
+              "album" : {
+                "properties" : {
+                  "created" : {
+                    "type" : "long"
+                  },
+                  "description" : {
+                    "type" : "string"
+                  },
+                  "id" : {
+                    "type" : "string"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "size" : {
+                    "type" : "long"
+                  },
+                  "thumb" : {
+                    "properties" : {
+                      "access_key" : {
+                        "type" : "string"
+                      },
+                      "album_id" : {
+                        "type" : "long"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "height" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "lat" : {
+                        "type" : "double"
+                      },
+                      "long" : {
+                        "type" : "double"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_1280" : {
+                        "type" : "string"
+                      },
+                      "photo_130" : {
+                        "type" : "string"
+                      },
+                      "photo_2560" : {
+                        "type" : "string"
+                      },
+                      "photo_604" : {
+                        "type" : "string"
+                      },
+                      "photo_75" : {
+                        "type" : "string"
+                      },
+                      "photo_807" : {
+                        "type" : "string"
+                      },
+                      "text" : {
+                        "type" : "string"
+                      },
+                      "user_id" : {
+                        "type" : "long"
+                      },
+                      "width" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "updated" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "audio" : {
+                "properties" : {
+                  "album_id" : {
+                    "type" : "long"
+                  },
+                  "artist" : {
+                    "type" : "string"
+                  },
+                  "date" : {
+                    "type" : "long"
+                  },
+                  "duration" : {
+                    "type" : "long"
+                  },
+                  "genre_id" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "lyrics_id" : {
+                    "type" : "long"
+                  },
+                  "no_search" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "url" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "doc" : {
+                "properties" : {
+                  "access_key" : {
+                    "type" : "string"
+                  },
+                  "ext" : {
+                    "type" : "string"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "photo_100" : {
+                    "type" : "string"
+                  },
+                  "photo_130" : {
+                    "type" : "string"
+                  },
+                  "size" : {
+                    "type" : "long"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "url" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "graffiti" : {
+                "properties" : {
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "photo_200" : {
+                    "type" : "string"
+                  },
+                  "photo_586" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "link" : {
+                "properties" : {
+                  "description" : {
+                    "type" : "string"
+                  },
+                  "photo" : {
+                    "properties" : {
+                      "album_id" : {
+                        "type" : "long"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "height" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "lat" : {
+                        "type" : "double"
+                      },
+                      "long" : {
+                        "type" : "double"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_1280" : {
+                        "type" : "string"
+                      },
+                      "photo_130" : {
+                        "type" : "string"
+                      },
+                      "photo_2560" : {
+                        "type" : "string"
+                      },
+                      "photo_604" : {
+                        "type" : "string"
+                      },
+                      "photo_75" : {
+                        "type" : "string"
+                      },
+                      "photo_807" : {
+                        "type" : "string"
+                      },
+                      "post_id" : {
+                        "type" : "long"
+                      },
+                      "text" : {
+                        "type" : "string"
+                      },
+                      "user_id" : {
+                        "type" : "long"
+                      },
+                      "width" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "url" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "note" : {
+                "properties" : {
+                  "comments" : {
+                    "type" : "long"
+                  },
+                  "date" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "read_comments" : {
+                    "type" : "long"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "view_url" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "page" : {
+                "properties" : {
+                  "created" : {
+                    "type" : "long"
+                  },
+                  "creator_id" : {
+                    "type" : "long"
+                  },
+                  "current_user_can_edit" : {
+                    "type" : "long"
+                  },
+                  "edited" : {
+                    "type" : "long"
+                  },
+                  "editor_id" : {
+                    "type" : "long"
+                  },
+                  "group_id" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "view_url" : {
+                    "type" : "string"
+                  },
+                  "views" : {
+                    "type" : "long"
+                  },
+                  "who_can_edit" : {
+                    "type" : "long"
+                  },
+                  "who_can_view" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "photo" : {
+                "properties" : {
+                  "access_key" : {
+                    "type" : "string"
+                  },
+                  "album_id" : {
+                    "type" : "long"
+                  },
+                  "date" : {
+                    "type" : "long"
+                  },
+                  "height" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "lat" : {
+                    "type" : "double"
+                  },
+                  "long" : {
+                    "type" : "double"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "photo_1280" : {
+                    "type" : "string"
+                  },
+                  "photo_130" : {
+                    "type" : "string"
+                  },
+                  "photo_2560" : {
+                    "type" : "string"
+                  },
+                  "photo_604" : {
+                    "type" : "string"
+                  },
+                  "photo_75" : {
+                    "type" : "string"
+                  },
+                  "photo_807" : {
+                    "type" : "string"
+                  },
+                  "post_id" : {
+                    "type" : "long"
+                  },
+                  "text" : {
+                    "type" : "string"
+                  },
+                  "user_id" : {
+                    "type" : "long"
+                  },
+                  "width" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "photos_list" : {
+                "type" : "string"
+              },
+              "poll" : {
+                "properties" : {
+                  "anonymous" : {
+                    "type" : "long"
+                  },
+                  "answer_id" : {
+                    "type" : "long"
+                  },
+                  "answers" : {
+                    "properties" : {
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "rate" : {
+                        "type" : "double"
+                      },
+                      "text" : {
+                        "type" : "string"
+                      },
+                      "votes" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "created" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "question" : {
+                    "type" : "string"
+                  },
+                  "votes" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "posted_photo" : {
+                "properties" : {
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "photo_130" : {
+                    "type" : "string"
+                  },
+                  "photo_604" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "type" : {
+                "type" : "string"
+              },
+              "video" : {
+                "properties" : {
+                  "access_key" : {
+                    "type" : "string"
+                  },
+                  "album_id" : {
+                    "type" : "long"
+                  },
+                  "comments" : {
+                    "type" : "long"
+                  },
+                  "date" : {
+                    "type" : "long"
+                  },
+                  "description" : {
+                    "type" : "string"
+                  },
+                  "duration" : {
+                    "type" : "long"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "is_private" : {
+                    "type" : "long"
+                  },
+                  "owner_id" : {
+                    "type" : "long"
+                  },
+                  "photo_130" : {
+                    "type" : "string"
+                  },
+                  "photo_320" : {
+                    "type" : "string"
+                  },
+                  "photo_640" : {
+                    "type" : "string"
+                  },
+                  "photo_800" : {
+                    "type" : "string"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "user_id" : {
+                    "type" : "long"
+                  },
+                  "views" : {
+                    "type" : "long"
+                  }
+                }
+              }
+            }
+          },
+          "comments" : {
+            "properties" : {
+              "count" : {
+                "type" : "long"
+              }
+            }
+          },
+          "copy_history" : {
+            "properties" : {
+              "attachments" : {
+                "properties" : {
+                  "album" : {
+                    "properties" : {
+                      "created" : {
+                        "type" : "long"
+                      },
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "id" : {
+                        "type" : "string"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "size" : {
+                        "type" : "long"
+                      },
+                      "thumb" : {
+                        "properties" : {
+                          "access_key" : {
+                            "type" : "string"
+                          },
+                          "album_id" : {
+                            "type" : "long"
+                          },
+                          "date" : {
+                            "type" : "long"
+                          },
+                          "height" : {
+                            "type" : "long"
+                          },
+                          "id" : {
+                            "type" : "long"
+                          },
+                          "lat" : {
+                            "type" : "double"
+                          },
+                          "long" : {
+                            "type" : "double"
+                          },
+                          "owner_id" : {
+                            "type" : "long"
+                          },
+                          "photo_1280" : {
+                            "type" : "string"
+                          },
+                          "photo_130" : {
+                            "type" : "string"
+                          },
+                          "photo_2560" : {
+                            "type" : "string"
+                          },
+                          "photo_604" : {
+                            "type" : "string"
+                          },
+                          "photo_75" : {
+                            "type" : "string"
+                          },
+                          "photo_807" : {
+                            "type" : "string"
+                          },
+                          "post_id" : {
+                            "type" : "long"
+                          },
+                          "text" : {
+                            "type" : "string"
+                          },
+                          "user_id" : {
+                            "type" : "long"
+                          },
+                          "width" : {
+                            "type" : "long"
+                          }
+                        }
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "updated" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "audio" : {
+                    "properties" : {
+                      "album_id" : {
+                        "type" : "long"
+                      },
+                      "artist" : {
+                        "type" : "string"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "duration" : {
+                        "type" : "long"
+                      },
+                      "genre_id" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "lyrics_id" : {
+                        "type" : "long"
+                      },
+                      "no_search" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "url" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "doc" : {
+                    "properties" : {
+                      "access_key" : {
+                        "type" : "string"
+                      },
+                      "ext" : {
+                        "type" : "string"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_100" : {
+                        "type" : "string"
+                      },
+                      "photo_130" : {
+                        "type" : "string"
+                      },
+                      "size" : {
+                        "type" : "long"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "url" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "graffiti" : {
+                    "properties" : {
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_200" : {
+                        "type" : "string"
+                      },
+                      "photo_586" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "link" : {
+                    "properties" : {
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "photo" : {
+                        "properties" : {
+                          "album_id" : {
+                            "type" : "long"
+                          },
+                          "date" : {
+                            "type" : "long"
+                          },
+                          "height" : {
+                            "type" : "long"
+                          },
+                          "id" : {
+                            "type" : "long"
+                          },
+                          "lat" : {
+                            "type" : "double"
+                          },
+                          "long" : {
+                            "type" : "double"
+                          },
+                          "owner_id" : {
+                            "type" : "long"
+                          },
+                          "photo_1280" : {
+                            "type" : "string"
+                          },
+                          "photo_130" : {
+                            "type" : "string"
+                          },
+                          "photo_2560" : {
+                            "type" : "string"
+                          },
+                          "photo_604" : {
+                            "type" : "string"
+                          },
+                          "photo_75" : {
+                            "type" : "string"
+                          },
+                          "photo_807" : {
+                            "type" : "string"
+                          },
+                          "post_id" : {
+                            "type" : "long"
+                          },
+                          "text" : {
+                            "type" : "string"
+                          },
+                          "user_id" : {
+                            "type" : "long"
+                          },
+                          "width" : {
+                            "type" : "long"
+                          }
+                        }
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "url" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "note" : {
+                    "properties" : {
+                      "comments" : {
+                        "type" : "long"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "read_comments" : {
+                        "type" : "long"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "view_url" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "page" : {
+                    "properties" : {
+                      "created" : {
+                        "type" : "long"
+                      },
+                      "creator_id" : {
+                        "type" : "long"
+                      },
+                      "current_user_can_edit" : {
+                        "type" : "long"
+                      },
+                      "edited" : {
+                        "type" : "long"
+                      },
+                      "editor_id" : {
+                        "type" : "long"
+                      },
+                      "group_id" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "parent" : {
+                        "type" : "string"
+                      },
+                      "parent2" : {
+                        "type" : "string"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "view_url" : {
+                        "type" : "string"
+                      },
+                      "views" : {
+                        "type" : "long"
+                      },
+                      "who_can_edit" : {
+                        "type" : "long"
+                      },
+                      "who_can_view" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "photo" : {
+                    "properties" : {
+                      "access_key" : {
+                        "type" : "string"
+                      },
+                      "album_id" : {
+                        "type" : "long"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "height" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "lat" : {
+                        "type" : "double"
+                      },
+                      "long" : {
+                        "type" : "double"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_1280" : {
+                        "type" : "string"
+                      },
+                      "photo_130" : {
+                        "type" : "string"
+                      },
+                      "photo_2560" : {
+                        "type" : "string"
+                      },
+                      "photo_604" : {
+                        "type" : "string"
+                      },
+                      "photo_75" : {
+                        "type" : "string"
+                      },
+                      "photo_807" : {
+                        "type" : "string"
+                      },
+                      "post_id" : {
+                        "type" : "long"
+                      },
+                      "text" : {
+                        "type" : "string"
+                      },
+                      "user_id" : {
+                        "type" : "long"
+                      },
+                      "width" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "photos_list" : {
+                    "type" : "string"
+                  },
+                  "poll" : {
+                    "properties" : {
+                      "anonymous" : {
+                        "type" : "long"
+                      },
+                      "answer_id" : {
+                        "type" : "long"
+                      },
+                      "answers" : {
+                        "properties" : {
+                          "id" : {
+                            "type" : "long"
+                          },
+                          "rate" : {
+                            "type" : "double"
+                          },
+                          "text" : {
+                            "type" : "string"
+                          },
+                          "votes" : {
+                            "type" : "long"
+                          }
+                        }
+                      },
+                      "created" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "question" : {
+                        "type" : "string"
+                      },
+                      "votes" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "sticker" : {
+                    "properties" : {
+                      "height" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "photo_128" : {
+                        "type" : "string"
+                      },
+                      "photo_256" : {
+                        "type" : "string"
+                      },
+                      "photo_352" : {
+                        "type" : "string"
+                      },
+                      "photo_512" : {
+                        "type" : "string"
+                      },
+                      "photo_64" : {
+                        "type" : "string"
+                      },
+                      "product_id" : {
+                        "type" : "long"
+                      },
+                      "width" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "type" : {
+                    "type" : "string"
+                  },
+                  "video" : {
+                    "properties" : {
+                      "access_key" : {
+                        "type" : "string"
+                      },
+                      "album_id" : {
+                        "type" : "long"
+                      },
+                      "comments" : {
+                        "type" : "long"
+                      },
+                      "date" : {
+                        "type" : "long"
+                      },
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "duration" : {
+                        "type" : "long"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "is_private" : {
+                        "type" : "long"
+                      },
+                      "owner_id" : {
+                        "type" : "long"
+                      },
+                      "photo_130" : {
+                        "type" : "string"
+                      },
+                      "photo_320" : {
+                        "type" : "string"
+                      },
+                      "photo_640" : {
+                        "type" : "string"
+                      },
+                      "photo_800" : {
+                        "type" : "string"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "user_id" : {
+                        "type" : "long"
+                      },
+                      "views" : {
+                        "type" : "long"
+                      }
+                    }
+                  }
+                }
+              },
+              "date" : {
+                "type" : "long"
+              },
+              "final_post" : {
+                "type" : "long"
+              },
+              "from_id" : {
+                "type" : "long"
+              },
+              "geo" : {
+                "properties" : {
+                  "coordinates" : {
+                    "type" : "string"
+                  },
+                  "place" : {
+                    "properties" : {
+                      "address" : {
+                        "type" : "string"
+                      },
+                      "checkins" : {
+                        "type" : "long"
+                      },
+                      "city" : {
+                        "type" : "string"
+                      },
+                      "country" : {
+                        "type" : "string"
+                      },
+                      "created" : {
+                        "type" : "long"
+                      },
+                      "group_id" : {
+                        "type" : "long"
+                      },
+                      "group_photo" : {
+                        "type" : "string"
+                      },
+                      "icon" : {
+                        "type" : "string"
+                      },
+                      "id" : {
+                        "type" : "long"
+                      },
+                      "latitude" : {
+                        "type" : "long"
+                      },
+                      "longitude" : {
+                        "type" : "long"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "type" : {
+                        "type" : "long"
+                      },
+                      "updated" : {
+                        "type" : "long"
+                      }
+                    }
+                  },
+                  "showmap" : {
+                    "type" : "long"
+                  },
+                  "type" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "id" : {
+                "type" : "long"
+              },
+              "owner_id" : {
+                "type" : "long"
+              },
+              "post_source" : {
+                "properties" : {
+                  "data" : {
+                    "type" : "string"
+                  },
+                  "link" : {
+                    "properties" : {
+                      "description" : {
+                        "type" : "string"
+                      },
+                      "title" : {
+                        "type" : "string"
+                      },
+                      "url" : {
+                        "type" : "string"
+                      }
+                    }
+                  },
+                  "platform" : {
+                    "type" : "string"
+                  },
+                  "type" : {
+                    "type" : "string"
+                  },
+                  "url" : {
+                    "type" : "string"
+                  }
+                }
+              },
+              "post_type" : {
+                "type" : "string"
+              },
+              "reply_post_id" : {
+                "type" : "long"
+              },
+              "signer_id" : {
+                "type" : "long"
+              },
+              "text" : {
+                "type" : "string"
+              }
+            }
+          },
+          "date" : {
+            "type" : "long"
+          },
+          "final_post" : {
+            "type" : "long"
+          },
+          "from_id" : {
+            "type" : "long"
+          },
+          "geo" : {
+            "properties" : {
+              "coordinates" : {
+                "type" : "string"
+              },
+              "place" : {
+                "properties" : {
+                  "address" : {
+                    "type" : "string"
+                  },
+                  "checkins" : {
+                    "type" : "long"
+                  },
+                  "city" : {
+                    "type" : "string"
+                  },
+                  "country" : {
+                    "type" : "string"
+                  },
+                  "created" : {
+                    "type" : "long"
+                  },
+                  "group_id" : {
+                    "type" : "long"
+                  },
+                  "group_photo" : {
+                    "type" : "string"
+                  },
+                  "icon" : {
+                    "type" : "string"
+                  },
+                  "id" : {
+                    "type" : "long"
+                  },
+                  "latitude" : {
+                    "type" : "double"
+                  },
+                  "longitude" : {
+                    "type" : "double"
+                  },
+                  "title" : {
+                    "type" : "string"
+                  },
+                  "type" : {
+                    "type" : "long"
+                  },
+                  "updated" : {
+                    "type" : "long"
+                  }
+                }
+              },
+              "showmap" : {
+                "type" : "long"
+              },
+              "type" : {
+                "type" : "string"
+              }
+            }
+          },
+          "id" : {
+            "type" : "long"
+          },
+          "is_pinned" : {
+            "type" : "long"
+          },
+          "likes" : {
+            "properties" : {
+              "count" : {
+                "type" : "long"
+              }
+            }
+          },
+          "owner_id" : {
+            "type" : "long"
+          },
+          "post_date" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "post_type" : {
+            "type" : "string"
+          },
+          "reply_owner_id" : {
+            "type" : "long"
+          },
+          "reply_post_id" : {
+            "type" : "long"
+          },
+          "reposts" : {
+            "properties" : {
+              "count" : {
+                "type" : "long"
+              }
+            }
+          },
+          "text" : {
+            "type" : "string"
+          }
+        }
+      }
+    }
+  }
