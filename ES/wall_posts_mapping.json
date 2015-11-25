@@ -1,10 +1,10 @@
 {
     "mappings" : {
-      "logs" : {
+      "wall_posts" : {
         "properties" : {
           "@timestamp" : {
             "type" : "date",
-            "format" : "dateOptionalTime"
+            "format" : "strict_date_optional_time||epoch_millis"
           },
           "@version" : {
             "type" : "string"
@@ -1193,7 +1193,7 @@
           },
           "post_date" : {
             "type" : "date",
-            "format" : "dateOptionalTime"
+            "format" : "strict_date_optional_time||epoch_millis"
           },
           "post_type" : {
             "type" : "string"
