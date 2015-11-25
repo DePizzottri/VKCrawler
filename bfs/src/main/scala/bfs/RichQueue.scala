@@ -19,6 +19,7 @@ import vkcrawler.DataModel._
 object RichQueue {
   case class Push(ids:Seq[VKID])
   case class Pop(types: Seq[String])
+  case class PopUnreliable(types: Seq[String])
   case class Item(task:Task)
   //case class Empty()
 
@@ -75,17 +76,7 @@ abstract class ReliableRichQueueActor extends ReliableMessaging with Stash {
     case msg:RecoveryCompleted => Unit
   }
 
-  override def processCommand: Receive =
-  {
-    //case SaveSnapshot() => saveSnapshot(queues)
-    case RichQueueBackendProtocol.QueueData(tp, tasks) => persist(DataFromBackend(tp, tasks)) { evt =>
-      updateState(evt)
-      unstashAll
-    }
-    case Push(ids) => {
-      backend ! RichQueueBackendProtocol.Push(ids)
-    }
-    case Pop(types) => {
+  def doPop(types: Seq[String]) = {
       //  println("===================")
       //  println(types)
       //  println(queues)
@@ -108,6 +99,22 @@ abstract class ReliableRichQueueActor extends ReliableMessaging with Stash {
         types.contains(k) && v.size > 0
       }
 
+      taskCandidates
+  }
+
+  override def processCommand: Receive =
+  {
+    //case SaveSnapshot() => saveSnapshot(queues)
+    case RichQueueBackendProtocol.QueueData(tp, tasks) => persist(DataFromBackend(tp, tasks)) { evt =>
+      updateState(evt)
+      unstashAll
+    }
+    case Push(ids) => {
+      backend ! RichQueueBackendProtocol.Push(ids)
+    }
+    case Pop(types) => {
+      val taskCandidates = doPop(types)
+
       //if all types demanded
       if(taskCandidates.size == 0) {
         stash
@@ -123,6 +130,26 @@ abstract class ReliableRichQueueActor extends ReliableMessaging with Stash {
         }
       }
     }
+
+    case PopUnreliable(types) => {
+      val taskCandidates = doPop(types)
+
+      //if all types demanded
+      if(taskCandidates.size == 0) {
+        stash
+      }
+      else {
+        val task = taskCandidates.keys.toVector(Random.nextInt(taskCandidates.size))
+        persist(Poped(task)) { evt =>
+          val item = taskCandidates(evt.`type`).dequeue
+          //println(s"Deliver $item")
+          //deliver(Item(item), sender.path)
+          //until 2.4
+          sender ! Item(item)
+        }
+      }
+    }
+
 
     case DeliverItem(item, path) => {
       deliver(Item(item), path)

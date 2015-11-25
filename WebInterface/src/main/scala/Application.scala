@@ -61,13 +61,9 @@ object Application extends App with SimpleRoutingApp {
               import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
               implicit val timeout = Timeout(15 seconds)
-              val f = (queue ? RichQueue.Pop(types.split(","))).mapTo[ReliableMessaging.Envelop].map{
-                envlp =>
-                  queue ! ReliableMessaging.Confirm(envlp.deliveryId)
-                  envlp.msg match {
-                    case msg@RichQueue.Item(t) => t
+              val f = (queue ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
+                case msg@RichQueue.Item(t) => t
                     //case msg@Queue.Empty => """{error:"No task"}""".parseJson
-                  }
               }
               import spray.httpx.SprayJsonSupport._
               complete(f)

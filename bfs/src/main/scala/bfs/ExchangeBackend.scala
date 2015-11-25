@@ -14,6 +14,7 @@ import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.MessageProperties
+import com.rabbitmq.client.AMQP.BasicProperties
 
 import com.typesafe.config.ConfigFactory
 
@@ -35,7 +36,7 @@ trait RabbitMQExchangeBackend extends ExchangeBackend {
     val connection = factory.newConnection()
     channel = connection.createChannel()
 
-    channel.exchangeDeclare(EXCHANGE_NAME, "direct")
+    channel.exchangeDeclare(EXCHANGE_NAME, "direct", true)
   }
 
   def publish(tag:String, msg: Any):Unit = {

@@ -27,7 +27,7 @@ object Common {
       val testKit = groupId %% "akka-testkit" % version % "test"
 
       val imMemoryPersistenceResolver = "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven"
-      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "1.0.6"
+      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "1.0.10"
       val persistencePluginInMemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % "1.1.3"
     }
 
