@@ -40,7 +40,7 @@ object ExchangeRabbitMQSpec {
     val connection = factory.newConnection()
     val channel = connection.createChannel()
 
-    channel.exchangeDeclare(EXCHANGE_NAME, "direct")
+    channel.exchangeDeclare(EXCHANGE_NAME, "direct", true)
     val QUEUE_NAME = channel.queueDeclare().getQueue()
     channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, routingKey);
     channel.basicQos(1);
