@@ -11,6 +11,8 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.QueueingConsumer
 
+import spray.json._
+
 object ExchangeRabbitMQSpec {
   private def getRandomCollection = Random.alphanumeric.take(5).mkString
 
@@ -76,6 +78,7 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   }
 
   import vkcrawler.bfs._
+  import vkcrawler.bfs.SprayJsonSupport._
 
   "RabbitMQExchangeActor " must {
     "accept with confirm, both send to BFS and Queue and publish" in {
@@ -108,8 +111,11 @@ class ExchangeRabbitMQSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       friendsConsumer.consumeOne
       newUsersConsumer.consumeOne
 
-      friendsConsumer.published should be (List(friends.toString))
-      newUsersConsumer.published should be (List(newUsers.toString))
+      import FriendsJsonSupport._
+      import NewUsersJsonSupport._
+
+      friendsConsumer.published.map{_.parseJson} should be (List(friends.toJson))
+      newUsersConsumer.published.map{_.parseJson} should be (List(newUsers.toJson))
     }
   }
 }
