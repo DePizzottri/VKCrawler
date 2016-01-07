@@ -18,7 +18,7 @@ import java.util.Date
 import vkcrawler.DataModel._
 import vkcrawler.DataModel.SprayJsonSupport._
 import TaskResultJsonSupport._
-import UserInfoJsonSupport._
+import FriendsListJsonSupport._
 
 // import vkcrawler.DataModel.SprayJsonSupport.TaskResultJsonSupport._
 
@@ -81,18 +81,24 @@ object Application extends App with SimpleRoutingApp {
         entity(as[TaskResult]) { res =>
           res.`type` match {
             case "friends_list" => {
-              val flo = res.data.convertTo[Seq[UserInfo]]
-              for(info <- flo) {
-                import UserInfoJsonSupport._
+              val friends = res.data.convertTo[Seq[FriendsList]]
+              for(info <- friends) {
                 exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
-                exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
+                //exchange ! vkcrawler.bfs.Exchange.Publish("friends", info)
               }
 
               complete("Ok")
             }
+            case "user_info" => {
+              val infos = res.data.convertTo[Seq[JsValue]]
+              for(info <- infos) {
+                exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info)
+              }
+              complete("Ok")
+            }
             case "wall_posts" => {
-              for(p <- res.data.convertTo[Vector[JsValue]]) {
-                exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p.compactPrint)
+              for(p <- res.data.convertTo[Seq[JsValue]]) {
+                exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p)
               }
 
               complete("Ok")
@@ -121,7 +127,7 @@ object Application extends App with SimpleRoutingApp {
           implicit val executionContext = system.dispatcher
           Await.result(IO(Http) ? Http.CloseAll, 15 seconds)
           system.stop(IO(Http))
-          system.shutdown();
+          system.terminate();
           "Ok"
         }
       }
