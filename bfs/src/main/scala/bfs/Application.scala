@@ -34,7 +34,7 @@ object Application extends App {
 
   val arr = if(args.isEmpty) Array("bfs", "exchange", "used", "graph", "queue") else args
 
-  val conf = ConfigFactory.load().withFallback(loadConf(arr))
+  val conf = ConfigFactory.load();//.withFallback(loadConf(arr))
 
   val system = ActorSystem("BFSSystem", conf)
 
