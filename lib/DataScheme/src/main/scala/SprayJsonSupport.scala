@@ -48,11 +48,16 @@ object BirthdayJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
     implicit val birthdayFormat = jsonFormat3(Birthday)
 }
 
-object UserInfoJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
-  import JodaDateTimeSupport._
-  import BirthdayJsonSupport._
+// object UserInfoJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
+//   import JodaDateTimeSupport._
+//   import BirthdayJsonSupport._
+//   import UserIdWithCityJsonSupport._
+//   implicit val friendsRawFormat = jsonFormat9(UserInfo)
+// }
+
+object FriendsListJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   import UserIdWithCityJsonSupport._
-  implicit val friendsRawFormat = jsonFormat9(UserInfo)
+  implicit val friendsListFormat = jsonFormat2(FriendsList)
 }
 
 // object FriendsListTaskResultJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {

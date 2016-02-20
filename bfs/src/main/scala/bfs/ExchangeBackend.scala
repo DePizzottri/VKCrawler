@@ -1,13 +1,15 @@
 package vkcrawler.bfs
 
+import spray.json.JsValue
+
 trait ExchangeBackend {
   def init:Unit
-  def publish(tag:String, msg: Any):Unit
+  def publish(tag:String, msg: JsValue):Unit
 }
 
 trait DummyExchangeBackend extends ExchangeBackend {
   def init:Unit = {}
-  def publish(tag:String, msg: Any):Unit = {}
+  def publish(tag:String, msg: JsValue):Unit = {}
 }
 
 import com.rabbitmq.client.ConnectionFactory
@@ -39,7 +41,7 @@ trait RabbitMQExchangeBackend extends ExchangeBackend {
     channel.exchangeDeclare(EXCHANGE_NAME, "direct", true)
   }
 
-  def publish(tag:String, msg: Any):Unit = {
+  def publish(tag:String, msg: JsValue):Unit = {
     channel.basicPublish(EXCHANGE_NAME, tag, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.toString.getBytes());
   }
 }

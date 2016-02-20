@@ -6,35 +6,35 @@ import akka.actor._
 object Application extends App {
   //kamon.Kamon.start()
 
-  val params = List(
-    ("bfs", "bfs.conf"),
-    ("exchange", "exchange.conf"),
-    ("graph", "graph.conf"),
-    ("queue", "queue.conf"),
-    ("used", "used.conf")
-  )
-
-  def loadConf(args:Array[String]) = {
-    def load(params:List[(String, String)]):Config = {
-      if(params.isEmpty)
-        ConfigFactory.load()
-      else {
-        if(args.contains(params.head._1))
-        {
-          println(params.head._2 + " loaded")
-          ConfigFactory.load(params.head._2).withFallback(load(params.tail))
-        }
-        else
-          ConfigFactory.load.withFallback(load(params.tail))
-      }
-    }
-
-    load(params)
-  }
+  // val params = List(
+  //   ("bfs", "bfs.conf"),
+  //   ("exchange", "exchange.conf"),
+  //   ("graph", "graph.conf"),
+  //   ("queue", "queue.conf"),
+  //   ("used", "used.conf")
+  // )
+  //
+  // def loadConf(args:Array[String]) = {
+  //   def load(params:List[(String, String)]):Config = {
+  //     if(params.isEmpty)
+  //       ConfigFactory.load()
+  //     else {
+  //       if(args.contains(params.head._1))
+  //       {
+  //         println(params.head._2 + " loaded")
+  //         ConfigFactory.load(params.head._2).withFallback(load(params.tail))
+  //       }
+  //       else
+  //         ConfigFactory.load.withFallback(load(params.tail))
+  //     }
+  //   }
+  //
+  //   load(params)
+  // }
 
   val arr = if(args.isEmpty) Array("bfs", "exchange", "used", "graph", "queue") else args
 
-  val conf = ConfigFactory.load().withFallback(loadConf(arr))
+  val conf = ConfigFactory.load();//.withFallback(loadConf(arr))
 
   val system = ActorSystem("BFSSystem", conf)
 

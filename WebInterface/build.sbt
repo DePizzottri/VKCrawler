@@ -38,7 +38,8 @@ libraryDependencies ++= Seq(
   //Other.protobuf
 )
 
-scalacOptions ++= Seq("-feature")
+scalacOptions ++= Seq("-feature", "-deprecation")
+
 
 // aspectjSettings
 //

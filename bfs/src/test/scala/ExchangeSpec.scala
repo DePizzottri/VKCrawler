@@ -4,12 +4,14 @@ import akka.actor._
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 import akka.testkit.TestProbe
+import spray.json._
 
 class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   def this() = this(ActorSystem("ExchangeSystem"))
 
   import vkcrawler.bfs._
+  import vkcrawler.bfs.SprayJsonSupport._
 
   "DummyExchange" must {
     "send friends to BFS and Queue actor" in {
@@ -34,12 +36,12 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   import scala.collection.concurrent.TrieMap
 
-  var published = TrieMap.empty[String, Any]
+  var published = TrieMap.empty[String, JsValue]
   trait MockExchangeBackend extends ExchangeBackend {
     def init:Unit = {
-      published = TrieMap.empty[String, Any]
+      published = TrieMap.empty[String, JsValue]
     }
-    def publish(tag:String, msg: Any):Unit = {
+    def publish(tag:String, msg: JsValue):Unit = {
       published += ((tag, msg))
     }
   }
@@ -62,7 +64,9 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       expectNoMsg(500.milliseconds) //sync
 
-      published should be (TrieMap("friends" -> friends, "new_users" -> newUsers))
+      import FriendsJsonSupport._
+      import NewUsersJsonSupport._
+      published should be (TrieMap("friends" -> friends.toJson, "new_users" -> newUsers.toJson))
     }
 
     "both send to BFS and Queue and publish" in {
@@ -83,8 +87,9 @@ class ExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       queue.expectMsg(RichQueue.Push(Seq[VKID](2,3,4)))
 
       //expectNoMsg(500.milliseconds) //sync
-
-      published should be (TrieMap("friends" -> friends, "new_users" -> newUsers))
+      import FriendsJsonSupport._
+      import NewUsersJsonSupport._
+      published should be (TrieMap("friends" -> friends.toJson, "new_users" -> newUsers.toJson))
     }
   }
 }

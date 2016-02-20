@@ -15,7 +15,7 @@ import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.Imports._
 
 import redis.clients.jedis._
-
+import spray.json._
 
 object WholeIntegrationSpec {
   private def getRandomCollection = Random.alphanumeric.take(5).mkString
@@ -46,6 +46,7 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   ))
 
   import vkcrawler.bfs._
+  import vkcrawler.bfs.SprayJsonSupport._
 
   def cleanRedis = {
     //clean redis
@@ -193,9 +194,11 @@ class WholeIntegrationSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       newUsersConsumer.consumeOne
       //newUsersConsumer.consumeOne
 
+      import FriendsJsonSupport._
+      import NewUsersJsonSupport._
       //friendsConsumer.published should be (Seq("Friends(1,List(2, 3))", "Friends(2,List(4))"))
-      friendsConsumer.published should be (Seq("Friends(1,List(2, 3))"))
-      newUsersConsumer.published should be (Seq("NewUsers(List(2, 3))"))
+      friendsConsumer.published.map{_.parseJson} should be (Seq(BFS.Friends(1, List(2, 3)).toJson))//(Seq("Friends(1,List(2, 3))"))
+      newUsersConsumer.published.map{_.parseJson} should be (Seq(BFS.NewUsers(List(2, 3)).toJson))//(Seq("NewUsers(List(2, 3))"))
     }
   }
 }
