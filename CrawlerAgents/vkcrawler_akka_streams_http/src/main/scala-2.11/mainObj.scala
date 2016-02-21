@@ -114,7 +114,7 @@ trait HttpConfig {
 }
 
 
-object mainObj extends App with HttpConfig {
+object mainObj extends App with HttpConfig with DefaultJsonProtocol {
 
   implicit val system = ActorSystem("zAkkaHttpTest",config)
   implicit val materializer = ActorMaterializer()
