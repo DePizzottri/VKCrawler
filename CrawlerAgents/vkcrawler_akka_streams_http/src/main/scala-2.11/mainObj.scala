@@ -170,7 +170,7 @@ object mainObj extends App with HttpConfig with DefaultJsonProtocol {
       })
     .mapAsyncUnordered(4)(joi => {
         Future{
-          val window = 100
+          val window = 1000
           val count = joi._1.fields.head._2.asJsObject.fields("count").toString().toInt
           val id = joi._2
           val offsets = (0 to count / window).map { x => x * window }
