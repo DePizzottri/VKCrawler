@@ -5,8 +5,7 @@ import Common._
 resolvers ++= Seq (
   Akka.resolver,
   Akka.imMemoryPersistenceResolver,
-  Spray.resolver,
-  Akka.persistencePluginCassandraResolver
+  Spray.resolver
 )
 
 libraryDependencies ++= Seq(
@@ -16,7 +15,6 @@ libraryDependencies ++= Seq(
   Akka.persistence,
   Akka.testKit,
   Akka.persistencePluginCasbah,
-  Akka.persistencePluginCassandra,
   Akka.persistencePluginInMemory % "test"
 )
 
