@@ -39,6 +39,8 @@ scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked")
 
 javaOptions in run ++= Seq("-Xmx6G")
 
+javaOptions in run ++= Seq("-Xss8m")
+
 //javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
 
 fork := true
