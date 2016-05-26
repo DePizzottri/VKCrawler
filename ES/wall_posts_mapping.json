@@ -1119,7 +1119,7 @@
           "geo" : {
             "properties" : {
               "coordinates" : {
-                "type" : "string"
+                "type" : "geo_point"
               },
               "place" : {
                 "properties" : {
