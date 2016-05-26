@@ -13,7 +13,9 @@
 #include <cpprest/rawptrstream.h>               // Async streams backed by raw pointer to memory</span>
 #include <cpprest/producerconsumerstream.h>     // Async streams for producer consumer scenarios</span>
 #include <iostream>
-#include <concurrent_vector.h>
+#include <pplx/pplx.h>
+#include <pplx/pplxtasks.h>
+//#include <concurrent_vector.h>
 
 using namespace utility;                    // Common utilities like string conversions
 using namespace web;                        // Common features like URIs.
@@ -26,7 +28,7 @@ using namespace web::json;                                  // JSON library
 using namespace std;
 
 
-concurrency::task<http_response> go() {
+pplx::task<http_response> go() {
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
     auto client = make_shared<http_client>(U("http://192.168.1.4:8081/"));
     auto postClient = make_shared<http_client>(U("http://192.168.1.4:8081/"));
@@ -43,17 +45,17 @@ concurrency::task<http_response> go() {
         })
         .then([=](json::value js) {
             if (!js.has_field(U("data"))) {
-                wcout << "No data field in response!" << endl;
-                wcout << js << endl;
-                throw exception("No data field in resopse from WEB Interface");
+                ucout << "No data field in response!" << endl;
+                ucout << js << endl;
+                throw runtime_error("No data field in resopse from WEB Interface");
             }
 
-            auto flTasks = vector<concurrency::task<json::value>>{};
+            auto flTasks = vector<pplx::task<json::value>>{};
             for (auto& idobj : js[U("data")].as_array()) {
-                wcout << "Requesting " << idobj[U("id")].as_integer() << endl;
+                ucout << "Requesting " << idobj[U("id")].as_integer() << endl;
                 const int count = 5000;
                 int offset = 0;
-                auto tasks = vector<concurrency::task<vector<json::value>>>{};
+                auto tasks = vector<pplx::task<vector<json::value>>>{};
                 for (int i = 0; i < 2; ++i) {
                     uri_builder builder(U("/method/friends.get"));
                     builder.append_query(U("user_id"), idobj[U("id")]);
@@ -65,13 +67,13 @@ concurrency::task<http_response> go() {
                     vkclient->request(methods::GET, builder.to_string())
                     .then([uid = idobj[U("id")]](http_response response) {
                         if (response.status_code() != web::http::status_codes::OK) {
-                            wcout << uid.to_string() + U(" Failed request with status ") + response.reason_phrase() << endl;
-                            throw exception("failed request to VK");
+                            ucout << uid.serialize() + U(" Failed request with status ") + response.reason_phrase() << endl;
+                            throw runtime_error("failed request to VK");
                         }
                         return response.extract_json();
                     })
                     .then([uid = idobj[U("id")]](json::value frlstjs) {
-                        wcout << U("Get ") + uid.to_string() + U(" OK") << endl;
+                        ucout << U("Get ") + uid.serialize() + U(" OK") << endl;
                         auto resp = frlstjs[U("response")];
                         auto res = vector < json::value >{};
                         for (auto man : resp.as_array()) {
@@ -90,7 +92,7 @@ concurrency::task<http_response> go() {
                     offset += count;
                 } //for 1..2
 
-                auto flTask = concurrency::when_all(tasks.begin(), tasks.end())
+                auto flTask = pplx::when_all(tasks.begin(), tasks.end())
                     .then([uid = idobj[U("id")]](vector<json::value> res) { //Seq[UserIdWithCity]
                     auto fl = json::value::object();
                     fl[U("uid")] = uid;
@@ -101,7 +103,7 @@ concurrency::task<http_response> go() {
                 flTasks.push_back(flTask);
             } //for by id
 
-            return concurrency::when_all(flTasks.begin(), flTasks.end())
+            return pplx::when_all(flTasks.begin(), flTasks.end())
                 .then([=](vector<json::value> fls) {
                     auto ret = json::value::object();
                     ret[U("type")] = json::value::string(U("friends_list"));
@@ -111,7 +113,7 @@ concurrency::task<http_response> go() {
 
                     //wcout << ret[U("data")] << endl;
 
-                    wcout << "Making POST" << endl;
+                    ucout << "Making POST" << endl;
                     return postClient->request(methods::POST, builder.to_string(), ret);
                 });
         }); //get task
@@ -127,10 +129,10 @@ int main()
         go()
             .then([](http_response response) {
             return response.extract_utf16string();
-        })
-            .then([](string_t respBody) {
-            wcout << U("POST:") << respBody << endl;
-        })
+        })/*
+            .then([](auto respBody) {
+            ucout << U("POST: ") << respBody << endl;
+        })*/
             .wait();
     }
     catch (const std::exception &e)
