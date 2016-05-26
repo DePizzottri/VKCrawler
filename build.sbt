@@ -2,8 +2,7 @@ name := """VKCrawler"""
 
 lazy val common = Seq(
   version := "0.3.0",
-  scalaVersion := "2.11.7",
-  Revolver.settings
+  scalaVersion := "2.11.7"
 )
 
 lazy val root = (project in file(".")).aggregate(DataScheme, WEBInterface, BFS, InfoNGraphRefiner, WallPostsRefiner)

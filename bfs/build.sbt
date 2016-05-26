@@ -5,7 +5,8 @@ import Common._
 resolvers ++= Seq (
   Akka.resolver,
   Akka.imMemoryPersistenceResolver,
-  Spray.resolver
+  Spray.resolver,
+  Akka.persistencePluginCassandraResolver
 )
 
 libraryDependencies ++= Seq(
@@ -15,6 +16,7 @@ libraryDependencies ++= Seq(
   Akka.persistence,
   Akka.testKit,
   Akka.persistencePluginCasbah,
+  Akka.persistencePluginCassandra,
   Akka.persistencePluginInMemory % "test"
 )
 
@@ -38,6 +40,8 @@ libraryDependencies ++= Seq(
 scalacOptions ++= Seq("-feature", "-deprecation", "-unchecked")
 
 javaOptions in run ++= Seq("-Xmx6G")
+
+javaOptions in run ++= Seq("-Xss8m")
 
 //javaOptions in Test ++= Seq("-Dkamon.auto-start=true")
 

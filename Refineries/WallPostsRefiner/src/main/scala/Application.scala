@@ -50,7 +50,7 @@ object WallPostsRefiner extends App {
   val connection = factory.newConnection()
   val channel = connection.createChannel()
 
-  channel.exchangeDeclare(EXCHANGE_NAME, "direct")
+  channel.exchangeDeclare(EXCHANGE_NAME, "direct", true)
   channel.queueDeclare(QUEUE_NAME, true, false, false, null)
   channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, ROUTING_KEY);
   channel.basicQos(100);
