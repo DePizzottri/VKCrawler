@@ -3,62 +3,45 @@ import com.typesafe.config.{ConfigFactory, Config}
 
 import akka.actor._
 
-object Application extends App {
-  //kamon.Kamon.start()
+abstract class Runner(args:Array[String])
+{
+  val subsystems = if(args.isEmpty) Array("bfs", "exchange", "used", "graph", "queue") else args
 
-  // val params = List(
-  //   ("bfs", "bfs.conf"),
-  //   ("exchange", "exchange.conf"),
-  //   ("graph", "graph.conf"),
-  //   ("queue", "queue.conf"),
-  //   ("used", "used.conf")
-  // )
-  //
-  // def loadConf(args:Array[String]) = {
-  //   def load(params:List[(String, String)]):Config = {
-  //     if(params.isEmpty)
-  //       ConfigFactory.load()
-  //     else {
-  //       if(args.contains(params.head._1))
-  //       {
-  //         println(params.head._2 + " loaded")
-  //         ConfigFactory.load(params.head._2).withFallback(load(params.tail))
-  //       }
-  //       else
-  //         ConfigFactory.load.withFallback(load(params.tail))
-  //     }
-  //   }
-  //
-  //   load(params)
-  // }
+  def name:String
 
-  val arr = if(args.isEmpty) Array("bfs", "exchange", "used", "graph", "queue") else args
+  def run {
+    val initActors = Map(
+      "bfs" -> bfs,
+      "exchange" -> exchange,
+      "graph" -> graph,
+      "queue" -> queue,
+      "used" -> used
+    )
 
-  val conf = ConfigFactory.load();//.withFallback(loadConf(arr))
+    println(name)
+    println("Starting actors")
 
-  val system = ActorSystem("BFSSystem", conf)
-
-  if(system.settings.config.getString("akka.remote.asdasd") != "asd")
-    throw new Exception("Config not loaded!")
-
-  val initActors = Map(
-    "bfs" -> bfs,
-    "exchange" -> exchange,
-    "graph" -> graph,
-    "queue" -> queue,
-    "used" -> used
-  )
-
-  for (i <- initActors) {
-    if(arr.contains(i._1)) {
-      println("Start " + i._1)
-      i._2
+    for (i <- initActors) {
+      if(subsystems.contains(i._1)) {
+        println("Start " + i._1)
+        i._2
+      }
     }
+
+    println("Started")
   }
 
-  println("Started")
+  def bfs
+  def exchange
+  def graph
+  def queue
+  def used
+}
 
-  def bfs = if(arr.contains("bfs")) {
+class ReliableRunner(args:Array[String], system:ActorSystem, conf:Config) extends Runner(args) {
+  override def name = "Reliable BFS"
+
+  override def bfs = {
     system.actorOf(
       Props(
         new ReliableBFSActor(
@@ -71,7 +54,7 @@ object Application extends App {
       )
   }
 
-  def exchange = if(arr.contains("exchange")) {
+  override def exchange = {
     class RabbitMQExchangeActor extends ReliableExchangeActor(
       ActorPath.fromString(system.toString + conf.getString("exchange.bfsactor")),
       ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
@@ -80,12 +63,12 @@ object Application extends App {
     system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
   }
 
-  def graph = if(arr.contains("graph")) {
+  override def graph = {
     class GraphSaverMongoDBActor extends ReliableGraphActor with ReliableMongoDBGraphSaverBackend
     system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
   }
 
-  def queue = if(arr.contains("queue")) {
+  override def queue = {
     //class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
     class RichQueueMongoDBActor extends ReliableRichQueueActor {
       class MongoBackendActor extends RichQueueBackendActor with MongoRichQueueBackend
@@ -94,8 +77,61 @@ object Application extends App {
     system.actorOf(Props(new RichQueueMongoDBActor), "QueueActor")
   }
 
-  def used = if(arr.contains("used")) {
+  override def used = {
     class JedisUsedActor extends ReliableUsedActor with JedisUsedBackend
     system.actorOf(Props(new JedisUsedActor), "UsedActor")
+  }
+}
+
+class UnreiableRunner(args:Array[String], system:ActorSystem, conf:Config) extends Runner(args) {
+  override def name = "Unreiable BFS"
+
+  override def bfs = {
+    system.actorOf(
+      Props(
+        new BFSActor(
+          ActorPath.fromString(system.toString + conf.getString("bfs.graphactor")),
+          ActorPath.fromString(system.toString + conf.getString("bfs.usedactor")),
+          ActorPath.fromString(system.toString + conf.getString("bfs.exchangeactor"))
+        )
+      ),
+      "BFSActor"
+    )
+  }
+
+  override def exchange = {
+    class RabbitMQExchangeActor extends ExchangeActor(
+      ActorPath.fromString(system.toString + conf.getString("exchange.bfsactor")),
+      ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
+    ) with RabbitMQExchangeBackend
+
+    system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
+  }
+
+  override def graph = {
+    class GraphSaverMongoDBActor extends GraphActor with ReliableMongoDBGraphSaverBackend
+    system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
+  }
+
+  override def queue = {
+    class QueueMongoDBActor extends QueueActor with MongoQueueBackend
+    system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+  }
+
+  override def used = {
+    class JedisUsedActor extends UsedActor with JedisUsedBackend
+    system.actorOf(Props(new JedisUsedActor), "UsedActor")
+  }
+}
+
+object Application extends App {
+  val conf = ConfigFactory.load();
+
+  val system = ActorSystem("BFSSystem", conf)
+
+  if(args.contains("reliable")) {
+    new ReliableRunner(args, system, conf).run
+  } else {
+    //new UnreliableRunner(args, system, conf).run()
   }
 }
