@@ -13,7 +13,9 @@
 #include <cpprest/rawptrstream.h>               // Async streams backed by raw pointer to memory</span>
 #include <cpprest/producerconsumerstream.h>     // Async streams for producer consumer scenarios</span>
 #include <iostream>
+#if !(defined(_MSC_VER) && (_MSC_VER >= 1800)) && CPPREST_FORCE_PPLX
 #include <pplx/pplx.h>
+#endif
 #include <pplx/pplxtasks.h>
 //#include <concurrent_vector.h>
 

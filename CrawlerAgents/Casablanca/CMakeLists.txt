@@ -14,9 +14,9 @@ add_executable(Crawler_FL src/friends_list.cpp)
 find_package(Boost COMPONENTS system)
 FIND_PACKAGE(OpenSSL)
 
-if(CASABLANCA_LIB_DIR)
-  target_link_libraries(Crawler_FL ${CASABLANCA_LIB_DIR}/libcpprest_2_8.lib )
-else()
+if(UNIX)
   target_link_libraries(Crawler_FL libcpprest.so ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES})
+else()
+  target_link_libraries(Crawler_FL ${CASABLANCA_LIB_DIR}/cpprest_2_8.lib )
 endif()
 
