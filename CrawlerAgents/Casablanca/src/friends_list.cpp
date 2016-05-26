@@ -1,8 +1,6 @@
 // REST_SDK.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
-
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
 

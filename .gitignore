@@ -25,3 +25,6 @@ project/plugins/project/
 prototype/journal
 prototype/graph.txt
 prototype/snapshots
+
+#CMake build birs
+CrawlerAgents/*/build
