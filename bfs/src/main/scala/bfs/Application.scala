@@ -83,7 +83,7 @@ class ReliableRunner(args:Array[String], system:ActorSystem, conf:Config) extend
   }
 }
 
-class UnreiableRunner(args:Array[String], system:ActorSystem, conf:Config) extends Runner(args) {
+class UnreliableRunner(args:Array[String], system:ActorSystem, conf:Config) extends Runner(args) {
   override def name = "Unreiable BFS"
 
   override def bfs = {
@@ -132,6 +132,6 @@ object Application extends App {
   if(args.contains("reliable")) {
     new ReliableRunner(args, system, conf).run
   } else {
-    //new UnreliableRunner(args, system, conf).run()
+    new UnreliableRunner(args, system, conf).run
   }
 }

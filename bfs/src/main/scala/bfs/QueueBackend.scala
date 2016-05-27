@@ -4,9 +4,13 @@ import vkcrawler.Common._
 
 import java.util.Date
 
+import vkcrawler.DataModel._
+
+import org.joda.time.DateTime
+
 trait QueueBackend {
   def push(ids:Seq[VKID]): Unit
-  def popMany(): Seq[VKID]
+  def pop(`type`:String): Task
 }
 
 import com.mongodb.casbah.MongoClient
@@ -33,19 +37,19 @@ trait MongoQueueBackend extends QueueBackend {
 
   val popSize = conf.getInt("queue.popSize")
 
-  def popMany(): Seq[VKID] = {
+  def pop(`type`:String): Task = {
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
     val tryRet = Try{
       val ret = col.find(
         MongoDBObject.empty,
-        MongoDBObject("id" -> 1)
+        MongoDBObject("id" -> 1, `type`+".lastUseDate" -> 1)
       )
-      .sort(MongoDBObject("lastUseDate" -> 1))
+      .sort(MongoDBObject(`type`+".lastUseDate" -> 1))
       .take(popSize)
-      .flatMap { doc =>
-        bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
-        doc.getAs[VKID]("id")
+      .map { doc =>
+        bulkUpdate.find(doc).update($set(`type`+".lastUseDate" -> new Date))
+        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{_.as[DateTime](`type`+".lastUseDate")})
       }.toArray
 
       bulkUpdate.execute
@@ -54,23 +58,26 @@ trait MongoQueueBackend extends QueueBackend {
     }
 
     tryRet match {
-      case Success(r) => r
-      case Failure(e) => Seq()
+      case Success(r) => Task(`type`, r)
+      case Failure(e) => {
+        akka.event.Logging(context.system, this).warning("Failure in queue pop {}", e)
+        Task(`type`, Seq())
+      }
     }
   }
 }
 
 trait LocalQueueBackend extends QueueBackend {
-  var queue = scala.collection.mutable.Queue.empty[VKID]
+  var queue = scala.collection.mutable.Queue.empty[TaskData]
   def push(ids:Seq[VKID]) = {
-    queue ++= ids
+    queue ++= ids.map{id => TaskData(id, None)}
   }
 
-  def popMany(): Seq[VKID] = {
+  def pop(`type`:String): Task = {
     if(queue.isEmpty)
-      Seq.empty[VKID]
+      Task(`type`, Seq())
     else
-      Seq(queue.dequeue())
+      Task(`type`, Seq(queue.dequeue()))
   }
 }
 

@@ -8,14 +8,15 @@ class QueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem("QueueSpecSystem"))
 
   import vkcrawler.bfs._
+  import vkcrawler.DataModel._
 
   class LocalQueueActor extends QueueActor with LocalQueueBackend
 
   "LocalQueueActor " must {
     "return empty on emtpy queue" in {
       val queue = system.actorOf(Props(new LocalQueueActor))
-      queue ! Queue.Pop
-      expectMsg(Queue.Empty)
+      queue ! Queue.Pop("stub")
+      expectMsg(Queue.Item(Task("stub", Seq())))
     }
 
     "preserve queue order" in {
@@ -23,14 +24,14 @@ class QueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       val queue = system.actorOf(Props(new LocalQueueActor))
       val ins = Seq[VKID](1, 2, 3, 4)
       queue ! Queue.Push(ins)
-      queue ! Queue.Pop
-      expectMsg(Queue.Items(Seq(1)))
-      queue ! Queue.Pop
-      queue ! Queue.Pop
-      queue ! Queue.Pop
-      expectMsg(Queue.Items(Seq(2)))
-      expectMsg(Queue.Items(Seq(3)))
-      expectMsg(Queue.Items(Seq(4)))
+      queue ! Queue.Pop("stub")
+      expectMsg(Queue.Item(Task("stub", Seq(TaskData(1, None)))))
+      queue ! Queue.Pop("stub")
+      queue ! Queue.Pop("stub")
+      queue ! Queue.Pop("stub")
+      expectMsg(Queue.Item(Task("stub", Seq(TaskData(2, None)))))
+      expectMsg(Queue.Item(Task("stub", Seq(TaskData(3, None)))))
+      expectMsg(Queue.Item(Task("stub", Seq(TaskData(4, None)))))
     }
   }
 }

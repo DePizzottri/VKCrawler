@@ -8,6 +8,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
   def this() = this(ActorSystem("ReliableLocalQueueSystem", PersistanceSpecConfiguration.config))
 
   import vkcrawler.bfs._
+  import vkcrawler.DataModel._
 
   class ReliableLocalQueue extends ReliableQueueActor with ReliableLocalQueueBackend
 
@@ -16,11 +17,11 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
       import ReliableMessaging._
       val queue = system.actorOf(Props(new ReliableLocalQueue))
 
-      queue ! Envelop(11, Queue.Pop)
+      queue ! Envelop(11, Queue.Pop("stub"))
 
       expectMsg(Confirm(11))
       val e = expectMsgClass(classOf[Envelop])
-      e.msg should be (Queue.Empty)
+      e.msg should be (Queue.Item(Task("stub", Seq())))
 
       receiveN(2, 15.seconds)
 
@@ -30,11 +31,11 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
     "return empty on emtpy queue" in {
       import ReliableMessaging._
       val queue = system.actorOf(Props(new ReliableLocalQueue))
-      queue ! Envelop(13, Queue.Pop)
+      queue ! Envelop(13, Queue.Pop("stub"))
 
       expectMsg(Confirm(13))
       val e = expectMsgClass(classOf[Envelop])
-      e.msg should be (Queue.Empty)
+      e.msg should be (Queue.Item(Task("stub", Seq())))
       queue ! Confirm(e.deliveryId)
       expectNoMsg(1.seconds)
     }
@@ -47,20 +48,20 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
       queue ! Envelop(1, Queue.Push(ins))
       expectMsg(Confirm(1))
 
-      queue ! Envelop(2, Queue.Pop)
+      queue ! Envelop(2, Queue.Pop("stub"))
       expectMsg(Confirm(2))
-      expectMsgClass(classOf[Envelop]).msg should be (Queue.Items(Seq(1)))
+      expectMsgClass(classOf[Envelop]).msg should be (Queue.Item(Task("stub", Seq(TaskData(1, None)))))
 
-      queue ! Queue.Pop
-      expectMsgClass(classOf[Envelop]).msg should be (Queue.Items(Seq(2)))
+      queue ! Queue.Pop("stub")
+      expectMsgClass(classOf[Envelop]).msg should be (Queue.Item(Task("stub", Seq(TaskData(2, None)))))
 
-      queue ! Envelop(3, Queue.Pop)
+      queue ! Envelop(3, Queue.Pop("stub"))
       expectMsg(Confirm(3))
-      expectMsgClass(classOf[Envelop]).msg should be (Queue.Items(Seq(3)))
+      expectMsgClass(classOf[Envelop]).msg should be (Queue.Item(Task("stub", Seq(TaskData(3, None)))))
 
-      queue ! Envelop(4, Queue.Pop)
+      queue ! Envelop(4, Queue.Pop("stub"))
       expectMsg(Confirm(4))
-      expectMsgClass(classOf[Envelop]).msg should be (Queue.Items(Seq(4)))
+      expectMsgClass(classOf[Envelop]).msg should be (Queue.Item(Task("stub", Seq(TaskData(4, None)))))
     }
 
     "then redeliver unconfirmed messages" in {
@@ -70,7 +71,7 @@ class ReliableLocalQueueSpec(_system: ActorSystem) extends BFSTestSpec(_system) 
 
       def expectAndConfirm(id:VKID) {
         val envlp = expectMsgClass(classOf[Envelop])
-        envlp.msg should be (Queue.Items(Seq(id)))
+        envlp.msg should be (Queue.Item(Task("stub", Seq(TaskData(id, None)))))
 
         queue ! Confirm (envlp.deliveryId)
       }
