@@ -50,6 +50,8 @@ object Application extends App with SimpleRoutingApp {
 
   import TaskJsonSupport._
 
+  val isReliableBFS = args.contains("reliable")
+
   lazy val getTask =
     path("getTask") {
       get {
@@ -61,12 +63,32 @@ object Application extends App with SimpleRoutingApp {
               import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
               implicit val timeout = Timeout(15 seconds)
-              val f = (queue ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
-                case msg@RichQueue.Item(t) => t
-                    //case msg@Queue.Empty => """{error:"No task"}""".parseJson
+              if(isReliableBFS)
+              {
+                val f = (queue ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
+                  case msg@RichQueue.Item(t) => t
+                      //case msg@Queue.Empty => """{error:"No task"}""".parseJson
+                }
+                import spray.httpx.SprayJsonSupport._
+                complete(f)
               }
-              import spray.httpx.SprayJsonSupport._
-              complete(f)
+              else
+              {
+                import scala.util.Random
+                if(types.split(",").size > 0) {
+                  val `type` = Random.shuffle(types.split(",").toList).head
+
+                  val f = (queue ? Queue.Pop(`type`)).mapTo[Queue.Item].map{
+                     case Queue.Item(task) => task
+                  }
+                  import spray.httpx.SprayJsonSupport._
+                  complete(f)
+                }
+                else
+                {
+                  complete("""{"error":"bad type field in query"}""")
+                }
+              }
             }
           }
         }
@@ -74,6 +96,7 @@ object Application extends App with SimpleRoutingApp {
     }
 
   val filterCity = conf.getInt("WEB.filterCity")
+  val noFilterCity = filterCity == -1
 
   lazy val postTask = {
     path("postTask") {
@@ -83,8 +106,10 @@ object Application extends App with SimpleRoutingApp {
             case "friends_list" => {
               val friends = res.data.convertTo[Seq[FriendsList]]
               for(info <- friends) {
-                exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
-                //exchange ! vkcrawler.bfs.Exchange.Publish("friends", info)
+                if(noFilterCity)
+                  exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.map(x => x.uid))
+                else
+                  exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
               }
 
               complete("Ok")
