@@ -84,7 +84,7 @@ class ReliableRunner(args:Array[String], system:ActorSystem, conf:Config) extend
 }
 
 class UnreliableRunner(args:Array[String], system:ActorSystem, conf:Config) extends Runner(args) {
-  override def name = "Unreiable BFS"
+  override def name = "Unreliable BFS"
 
   override def bfs = {
     system.actorOf(
