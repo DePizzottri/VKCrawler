@@ -15,7 +15,11 @@
 #include <cpprest/rawptrstream.h>               // Async streams backed by raw pointer to memory</span>
 #include <cpprest/producerconsumerstream.h>     // Async streams for producer consumer scenarios</span>
 #include <iostream>
-#include <concurrent_vector.h>
+#if !(defined(_MSC_VER) && (_MSC_VER >= 1800)) && CPPREST_FORCE_PPLX
+#include <pplx/pplx.h>
+#endif
+#include <pplx/pplxtasks.h>
+//#include <concurrent_vector.h>
 
 using namespace utility;                    // Common utilities like string conversions
 using namespace web;                        // Common features like URIs.
@@ -27,7 +31,7 @@ using namespace web::http::experimental::listener;          // HTTP server
 using namespace web::json;                                  // JSON library
 using namespace std;
 
-concurrency::task<http_response> go() {
+pplx::task<http_response> go() {
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
     auto client = make_shared<http_client>(U("http://192.168.1.4:8081/"));
     auto postClient = make_shared<http_client>(U("http://192.168.1.4:8081/"));
@@ -45,17 +49,17 @@ concurrency::task<http_response> go() {
     })
     .then([=](json::value js) {
         if (!js.has_field(U("data"))) {
-            wcout << "No data field in response!" << endl;
-            wcout << js << endl;
+            ucout << "No data field in response!" << endl;
+            ucout << js << endl;
             throw exception("No data field in resopse from WEB Interface");
         }
 
         //auto tasks = make_shared<vector<concurrency::task<json::value>>>();
 
-        auto tasks = make_shared < Concurrency::concurrent_vector<concurrency::task<json::value>> > ();
+        auto tasks = make_shared <std::vector<pplx::task<json::value>> > ();
         
         for (auto& idobj : js[U("data")].as_array()) {
-            wcout << "Requesting " << idobj[U("id")].as_integer() << endl;
+            ucout << "Requesting " << idobj[U("id")].as_integer() << endl;
 
             uri_builder builder(U("/method/users.get"));
             builder.append_query(U("user_ids"), idobj[U("id")]);
@@ -80,20 +84,20 @@ concurrency::task<http_response> go() {
             auto requestForId = vkclient->request(methods::GET, builder.to_string())
                 .then([uid = idobj[U("id")]](http_response response) {
                 if (response.status_code() != web::http::status_codes::OK) {
-                    wcout << uid.to_string() + U(" Failed request with status ") + response.reason_phrase() << endl;
+                    ucout << uid.to_string() + U(" Failed request with status ") + response.reason_phrase() << endl;
                     throw exception("failed request to VK");
                 }
                 return response.extract_json();
             })
             .then([uid = idobj[U("id")]](json::value ugjs) {
-                wcout << U("Get ") + uid.to_string() + U(" OK") << endl;
+                ucout << U("Get ") + uid.to_string() + U(" OK") << endl;
                 auto resp = ugjs[U("response")];
                 return *resp.as_array().begin();
             });
             tasks->push_back(requestForId);
         }
 
-        return concurrency::when_all(tasks->begin(), tasks->end())
+        return pplx::when_all(tasks->begin(), tasks->end())
         .then([=](vector<json::value> ans) {
             auto ret = json::value::object();
             ret[U("type")] = json::value::string(U("user_info"));
@@ -101,7 +105,7 @@ concurrency::task<http_response> go() {
 
             uri_builder builder(U("/postTask"));
 
-            wcout << "Making POST" << endl;
+            ucout << "Making POST" << endl;
             return postClient->request(methods::POST, builder.to_string(), ret);
         });
     });
@@ -119,7 +123,7 @@ int main()
             return response.extract_utf16string();
         })
         .then([] (string_t respBody) {
-            wcout << U("POST:") << respBody << endl;
+            ucout << U("POST:") << respBody << endl;
         })
         .wait();
     }
