@@ -87,14 +87,16 @@ class UnreliableRunner(args:Array[String], system:ActorSystem, conf:Config) exte
   override def name = "Unreliable BFS"
 
   override def bfs = {
+    import akka.routing._
     system.actorOf(
+      RoundRobinPool(5).props(
       Props(
         new BFSActor(
           ActorPath.fromString(system.toString + conf.getString("bfs.graphactor")),
           ActorPath.fromString(system.toString + conf.getString("bfs.usedactor")),
           ActorPath.fromString(system.toString + conf.getString("bfs.exchangeactor"))
         )
-      ),
+      )),
       "BFSActor"
     )
   }
@@ -105,21 +107,35 @@ class UnreliableRunner(args:Array[String], system:ActorSystem, conf:Config) exte
       ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
     ) with RabbitMQExchangeBackend
 
-    system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
+    import akka.routing._
+    system.actorOf(RoundRobinPool(5).props(Props(new RabbitMQExchangeActor)), "ExchangeActor")
+    //system.actorOf(Props(new RabbitMQExchangeActor), "ExchangeActor")
   }
 
   override def graph = {
-    class GraphSaverMongoDBActor extends GraphActor with ReliableMongoDBGraphSaverBackend
+    class GraphSaverMongoDBActor extends GraphActor with ReliableMongoDBGraphSaverBackend {
+      override def preStart = {
+        init
+        super.preStart
+      }
+    }
     system.actorOf(Props(new GraphSaverMongoDBActor), "GraphActor")
   }
 
   override def queue = {
     class QueueMongoDBActor extends QueueActor with MongoQueueBackend
-    system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+    //system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
+    import akka.routing._
+    system.actorOf(RoundRobinPool(5).props(Props(new QueueMongoDBActor)), "QueueActor")
   }
 
   override def used = {
-    class JedisUsedActor extends UsedActor with JedisUsedBackend
+    class JedisUsedActor extends UsedActor with JedisUsedBackend {
+      override def preStart = {
+        init
+        super.preStart
+      }
+    }
     system.actorOf(Props(new JedisUsedActor), "UsedActor")
   }
 }

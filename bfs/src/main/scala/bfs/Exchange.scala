@@ -16,7 +16,10 @@ object Exchange {
 class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Actor {
   this: ExchangeBackend =>
 
-  init
+  override def preStart(): Unit = {
+    init
+    super.preStart()
+  }
 
   override def receive = {
     case msg@BFS.Friends(id, ids) => {
@@ -26,7 +29,7 @@ class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Ac
       publish("friends", msg.toJson)
     }
     case msg@BFS.NewUsers(ids) => {
-      context.actorSelection(queueActorPath) ! RichQueue.Push(ids)
+      context.actorSelection(queueActorPath) ! Queue.Push(ids)
       //publish
       import NewUsersJsonSupport._
       publish("new_users", msg.toJson)

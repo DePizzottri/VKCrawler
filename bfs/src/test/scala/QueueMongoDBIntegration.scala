@@ -19,8 +19,8 @@ object QueueMongoDBIntegration {
         database = vkcrawler_queue_test
         queue = queue
       }
-
-      popSize = $popSize
+      taskSize = $popSize
+      batchSize = 10
     }
     """.stripMargin
   )

@@ -1,7 +1,7 @@
 // REST_SDK.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
@@ -33,8 +33,8 @@ using namespace std;
 
 pplx::task<http_response> go() {
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
-    auto client = make_shared<http_client>(U("http://192.168.1.4:8081/"));
-    auto postClient = make_shared<http_client>(U("http://192.168.1.4:8081/"));
+    auto client = make_shared<http_client>(U("http://192.168.1.4:8080/"));
+    auto postClient = make_shared<http_client>(U("http://192.168.1.4:8080/"));
 
     // Build request URI and start the request.
     uri_builder builder(U("/getTask"));
@@ -51,7 +51,7 @@ pplx::task<http_response> go() {
         if (!js.has_field(U("data"))) {
             ucout << "No data field in response!" << endl;
             ucout << js << endl;
-            throw exception("No data field in resopse from WEB Interface");
+            throw runtime_error("No data field in resopse from WEB Interface");
         }
 
         //auto tasks = make_shared<vector<concurrency::task<json::value>>>();
@@ -80,17 +80,17 @@ pplx::task<http_response> go() {
                      ",occupation"
                      ",relatives,relation,personal,connections,exports,wall_comments,activities,interests,music,movies,tv,books,games,about,quotes,career,military"
                     )
-                );
+            );
             auto requestForId = vkclient->request(methods::GET, builder.to_string())
                 .then([uid = idobj[U("id")]](http_response response) {
                 if (response.status_code() != web::http::status_codes::OK) {
-                    ucout << uid.to_string() + U(" Failed request with status ") + response.reason_phrase() << endl;
-                    throw exception("failed request to VK");
+                    ucout << uid.serialize() + U(" Failed request with status ") + response.reason_phrase() << endl;
+                    throw runtime_error("failed request to VK");
                 }
                 return response.extract_json();
             })
             .then([uid = idobj[U("id")]](json::value ugjs) {
-                ucout << U("Get ") + uid.to_string() + U(" OK") << endl;
+                ucout << U("Get ") + uid.serialize() + U(" OK") << endl;
                 auto resp = ugjs[U("response")];
                 return *resp.as_array().begin();
             });
@@ -121,10 +121,10 @@ int main()
         go()
         .then([] (http_response response) {
             return response.extract_utf16string();
-        })
+        })/*
         .then([] (string_t respBody) {
             ucout << U("POST:") << respBody << endl;
-        })
+        })*/
         .wait();
     }
     catch (const std::exception &e)

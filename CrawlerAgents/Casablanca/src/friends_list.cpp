@@ -32,8 +32,8 @@ using namespace std;
 
 pplx::task<http_response> go() {
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
-    auto client = make_shared<http_client>(U("http://192.168.1.4:8081/"));
-    auto postClient = make_shared<http_client>(U("http://192.168.1.4:8081/"));
+    auto client = make_shared<http_client>(U("http://192.168.1.4:8080/"));
+    auto postClient = make_shared<http_client>(U("http://192.168.1.4:8080/"));
 
     // Build request URI and start the request.
     uri_builder builder(U("/getTask"));
@@ -78,6 +78,11 @@ pplx::task<http_response> go() {
                         ucout << U("Get ") + uid.serialize() + U(" OK") << endl;
                         auto resp = frlstjs[U("response")];
                         auto res = vector < json::value >{};
+                        if (!resp.is_array()) {
+                            ucout << "Response from " << uid << " not an array" << endl;
+                            ucout << resp.serialize() << endl;
+                            return res;
+                        }
                         for (auto man : resp.as_array()) {
                             auto obj = json::value::object();
                             obj[U("uid")] = man[U("uid")];

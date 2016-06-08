@@ -103,7 +103,7 @@ object Application extends App with SimpleRoutingApp {
       post {
         entity(as[TaskResult]) { res =>
           res.`type` match {
-            case "friends_list" => {
+            case "friends_list" => detach(){
               val friends = res.data.convertTo[Seq[FriendsList]]
               for(info <- friends) {
                 if(noFilterCity)
@@ -114,14 +114,14 @@ object Application extends App with SimpleRoutingApp {
 
               complete("Ok")
             }
-            case "user_info" => {
+            case "user_info" => detach(){
               val infos = res.data.convertTo[Seq[JsValue]]
               for(info <- infos) {
                 exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info)
               }
               complete("Ok")
             }
-            case "wall_posts" => {
+            case "wall_posts" => detach(){
               for(p <- res.data.convertTo[Seq[JsValue]]) {
                 exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p)
               }
