@@ -58,6 +58,7 @@ trait MongoQueueBackend extends QueueBackend {
   }
 
   def popAux(`type`:String): mutable.Queue[Task] = {
+    akka.event.Logging(context.system, this).info("Pop start")
     val now = System.nanoTime
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
@@ -78,10 +79,7 @@ trait MongoQueueBackend extends QueueBackend {
       ret
     }
 
-    val micros = (System.nanoTime - now) / 1000
-    akka.event.Logging(context.system, this).info("Mongo query time: %d microseconds".format(micros))
-
-    tryRet match {
+    val a:mutable.Queue[Task] = tryRet match {
       case Success(r) => {
         val tasks = (for(t <- r.grouped(taskSize)) yield {
           Task(`type`, t)
@@ -95,6 +93,10 @@ trait MongoQueueBackend extends QueueBackend {
         mutable.Queue.empty
       }
     }
+    val micros = (System.nanoTime - now) / 1000
+    akka.event.Logging(context.system, this).info("Pop finished: %d microseconds".format(micros))
+
+    a
   }
 }
 
