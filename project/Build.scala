@@ -14,6 +14,9 @@ object Common {
       val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 
       val protobuf = "com.google.protobuf" % "protobuf-java" % "2.5.0"
+      
+      val json4sCore =  "org.json4s" %% "json4s-core" % "3.2.11"
+      val json4sNative = "org.json4s" %% "json4s-native" % "3.2.11"
     }
 
     object Akka {
@@ -55,6 +58,12 @@ object Common {
       val metrics = groupId %% "kamon-system-metrics" % version
       val spray = groupId %% "kamon-spray" % version
       val aspectj = "org.aspectj" % "aspectjweaver" % "1.8.6"
+    }
+
+    object ElasticSearch {
+      val groupId = "com.sksamuel.elastic4s" 
+      val version = "2.1.2"
+      val core = groupId %% "elastic4s-core" % version
     }
 
     object Plugins {
