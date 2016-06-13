@@ -23,7 +23,10 @@ libraryDependencies ++= Seq(
   Other.jedis,
   Other.slf4j,
   Other.rabbitmq,
-  Other.scalaTest
+  Other.scalaTest,
+  Other.json4sCore,
+  Other.json4sNative,
+  ElasticSearch.core
   //Other.protobuf
 )
 
