@@ -1,7 +1,7 @@
 // REST_SDK.cpp : Defines the entry point for the console application.
 //
 
-#include "stdafx.h"
+//#include "stdafx.h"
 
 #include <cpprest/http_client.h>
 #include <cpprest/filestream.h>
@@ -31,10 +31,27 @@ using namespace web::http::experimental::listener;          // HTTP server
 using namespace web::json;                                  // JSON library
 using namespace std;
 
-pplx::task<http_response> go() {
+#include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <atomic>
+
+atomic_bool interrupt = false;
+
+void sig_int_handler(int s) {
+    cout << "Finishing..." << endl;
+    interrupt = true;
+}
+
+decltype(auto) go(string_t const& addr) {
+    ucout << "Requesting task from server..." << endl;
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
-    auto client = make_shared<http_client>(U("http://192.168.1.4:8081/"));
-    auto postClient = make_shared<http_client>(U("http://192.168.1.4:8081/"));
+    //auto client = make_shared<http_client>(U("http://5.136.254.43:8080/"));
+    //auto postClient = make_shared<http_client>(U("http://5.136.254.43:8080/"));
+    //auto client = make_shared<http_client>(U("http://192.168.1.4:8080/"));
+    //auto postClient = make_shared<http_client>(U("http://192.168.1.4:8080/"));
+    auto client = make_shared<http_client>(U("http://") + addr + U("/"));
+    //auto postClient = make_shared<http_client>(U("http://") + addr + U("/"));
 
     // Build request URI and start the request.
     uri_builder builder(U("/getTask"));
@@ -57,13 +74,13 @@ pplx::task<http_response> go() {
         //auto tasks = make_shared<vector<concurrency::task<json::value>>>();
 
         auto tasks = make_shared <std::vector<pplx::task<json::value>> > ();
-        
+
         for (auto& idobj : js[U("data")].as_array()) {
             ucout << "Requesting " << idobj[U("id")].as_integer() << endl;
 
             uri_builder builder(U("/method/users.get"));
             builder.append_query(U("user_ids"), idobj[U("id")]);
-            builder.append_query(U("fields"), 
+            builder.append_query(U("fields"),
                     U("status,"
                     "sex,"
                     "bdate,"
@@ -106,24 +123,58 @@ pplx::task<http_response> go() {
             uri_builder builder(U("/postTask"));
 
             ucout << "Making POST" << endl;
-            return postClient->request(methods::POST, builder.to_string(), ret);
+            return ret; //postClient->request(methods::POST, builder.to_string(), ret);
         });
     });
 
     return requestTask;
 }
 
-int main()
+pplx::task<http_response> post(json::value val, string_t  addr);
+
+pplx::task<http_response> postAux(http_response resp, json::value val, string_t addr) {
+    return resp.extract_utf16string().then([=](string_t respBody) {
+        if (respBody != U("Ok")) {
+            ucout << U("POST failed :") << respBody << endl;
+            return post(val, addr);
+        }
+        else
+        {
+            ucout << U("POST Ok") << endl;
+            if (interrupt.load() == true)
+                exit(0);
+            return pplx::task<http_response>{[resp] {return resp; }};
+        }
+    });
+}
+
+pplx::task<http_response> post(json::value val, string_t addr) {
+    auto postClient = make_shared<http_client>(U("http://") + addr + U("/"));
+    uri_builder builder(U("/postTask"));
+    return postClient->request(methods::POST, builder.to_string(), val).then(
+        [val, addr](http_response resp) {
+        return postAux(resp, val, addr);
+    });
+}
+
+int main(int argc, char* argv[])
 {
+    signal(SIGINT, sig_int_handler);
+
+    if (argc != 2) {
+        std::cout << "Usage: Crawler_FL host:port";
+        return EXIT_FAILURE;
+    }
+
+    auto addr = utility::conversions::to_string_t(argv[1]);
+
     for (;;)
     try
     {
-        go()
-        .then([] (http_response response) {
-            return response.extract_utf16string();
-        })
-        .then([] (string_t respBody) {
-            ucout << U("POST:") << respBody << endl;
+        go(addr)
+            .then([addr](json::value val) {
+            ucout << "Posting collected data to server..." << endl;
+            return post(val, addr);
         })
         .wait();
     }
@@ -134,4 +185,3 @@ int main()
 
     return 0;
 }
-
