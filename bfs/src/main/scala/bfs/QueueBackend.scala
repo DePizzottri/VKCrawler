@@ -8,6 +8,8 @@ import vkcrawler.DataModel._
 
 import org.joda.time.DateTime
 
+import scala.collection._
+
 trait QueueBackend {
   def push(ids:Seq[VKID]): Unit
   def pop(`type`:String): Task
@@ -21,7 +23,7 @@ trait MongoQueueBackend extends QueueBackend {
   this: akka.actor.Actor =>
   val conf = context.system.settings.config
 
-  var mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+  var mongoClient = MongoClient(MongoClientURI(conf.getString("queue.mongodb.uri")))
   var db = mongoClient(conf.getString("queue.mongodb.database"))
   var col = db(conf.getString("queue.mongodb.queue"))
 
@@ -35,9 +37,29 @@ trait MongoQueueBackend extends QueueBackend {
     }
   }
 
-  val popSize = conf.getInt("queue.popSize")
+  val taskSize = conf.getInt("queue.taskSize")
+  val batchSize = conf.getInt("queue.batchSize")
+
+  var cache = mutable.Map[String, mutable.Queue[Task]]()
 
   def pop(`type`:String): Task = {
+    if(!cache.contains(`type`) || (cache(`type`).length == 0)) {
+      cache(`type`) = popAux(`type`)
+    }
+
+    //println(`type`)
+    //println(cache.size)
+    //println(cache(`type`).length)
+
+    if(cache(`type`).length==0)
+      Task(`type`, Seq())
+    else
+      cache(`type`).dequeue
+  }
+
+  def popAux(`type`:String): mutable.Queue[Task] = {
+    akka.event.Logging(context.system, this).info("Pop start")
+    val now = System.nanoTime
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
     val tryRet = Try{
@@ -46,10 +68,10 @@ trait MongoQueueBackend extends QueueBackend {
         MongoDBObject("id" -> 1, `type`+".lastUseDate" -> 1)
       )
       .sort(MongoDBObject(`type`+".lastUseDate" -> 1))
-      .take(popSize)
+      .take(batchSize + scala.util.Random.nextInt(batchSize))
       .map { doc =>
         bulkUpdate.find(doc).update($set(`type`+".lastUseDate" -> new Date))
-        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{_.as[DateTime]("lastUseDate")})
+        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{x => new DateTime(x.as[Date]("lastUseDate"))})
       }.toArray
 
       bulkUpdate.execute
@@ -57,13 +79,24 @@ trait MongoQueueBackend extends QueueBackend {
       ret
     }
 
-    tryRet match {
-      case Success(r) => Task(`type`, r)
+    val a:mutable.Queue[Task] = tryRet match {
+      case Success(r) => {
+        val tasks = (for(t <- r.grouped(taskSize)) yield {
+          Task(`type`, t)
+        })
+        val ret = mutable.Queue.empty[Task]
+        ret.enqueue(tasks.toSeq:_*)
+        ret
+      }
       case Failure(e) => {
         akka.event.Logging(context.system, this).warning("Failure in queue pop {}", e)
-        Task(`type`, Seq())
+        mutable.Queue.empty
       }
     }
+    val micros = (System.nanoTime - now) / 1000
+    akka.event.Logging(context.system, this).info("Pop finished: %d microseconds".format(micros))
+
+    a
   }
 }
 
@@ -89,7 +122,7 @@ trait ReliableMongoQueueBackend extends ReliableQueueBackend with MongoQueueBack
   this: akka.actor.Actor =>
 
   def recoverQueue: Unit = {
-    mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+    mongoClient = MongoClient(MongoClientURI(conf.getString("queue.mongodb.uri")))
     db = mongoClient(conf.getString("queue.mongodb.database"))
     col = db(conf.getString("queue.mongodb.queue"))
   }

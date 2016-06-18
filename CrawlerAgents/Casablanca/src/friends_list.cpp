@@ -41,16 +41,11 @@ void sig_int_handler(int s) {
     interrupt = true;
 }
 
-
 decltype(auto) go(string_t const& addr) {
     ucout << "Requesting task from server..." << endl;
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
-    //auto client = make_shared<http_client>(U("http://5.136.227.216:8080/"));
-    //auto postClient = make_shared<http_client>(U("http://5.136.227.216:8080/"));
-    //auto client = make_shared<http_client>(U("http://5.136.254.43:8080/"));
-    //auto postClient = make_shared<http_client>(U("http://5.136.254.43:8080/"));
     auto client = make_shared<http_client>(U("http://")+ addr +U("/"));
-    
+
     // Build request URI and start the request.
     uri_builder builder(U("/getTask"));
     builder.append_query(U("version"), U("1"));
@@ -82,7 +77,7 @@ decltype(auto) go(string_t const& addr) {
                     builder.append_query(U("offset"), offset);
                     builder.append_query(U("count"), count);
 
-                    auto requestForId = 
+                    auto requestForId =
                     vkclient->request(methods::GET, builder.to_string())
                     .then([uid = idobj[U("id")]](http_response response) {
                         if (response.status_code() != web::http::status_codes::OK) {
@@ -154,7 +149,7 @@ pplx::task<http_response> postAux(http_response resp, json::value val, string_t 
             ucout << U("POST failed :") << respBody << endl;
             return post(val, addr);
         }
-        else 
+        else
         {
             ucout << U("POST Ok") << endl;
             if (interrupt.load() == true)
@@ -186,19 +181,18 @@ int main(int argc, char* argv[])
 
     for (;;)
         try
-    {
-        go(addr)
-        .then([addr](json::value val) {
-            ucout << "Posting collected data to server..." << endl;
-            return post(val, addr);
-        })
-        .wait();
-    }
-    catch (const std::exception &e)
-    {
-        printf("Error exception:%s\n", e.what());
-    }
+        {
+            go(addr)
+            .then([addr](json::value val) {
+                ucout << "Posting collected data to server..." << endl;
+                return post(val, addr);
+            })
+            .wait();
+        }
+        catch (const std::exception &e)
+        {
+            printf("Error exception:%s\n", e.what());
+        }
 
     return 0;
 }
-

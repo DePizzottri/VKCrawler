@@ -46,12 +46,7 @@ void sig_int_handler(int s) {
 decltype(auto) go(string_t const& addr) {
     ucout << "Requesting task from server..." << endl;
     auto vkclient = make_shared<http_client>(U("http://api.vk.com/"));
-    //auto client = make_shared<http_client>(U("http://5.136.254.43:8080/"));
-    //auto postClient = make_shared<http_client>(U("http://5.136.254.43:8080/"));
-    //auto client = make_shared<http_client>(U("http://192.168.1.4:8080/"));
-    //auto postClient = make_shared<http_client>(U("http://192.168.1.4:8080/"));
     auto client = make_shared<http_client>(U("http://") + addr + U("/"));
-    //auto postClient = make_shared<http_client>(U("http://") + addr + U("/"));
 
     // Build request URI and start the request.
     uri_builder builder(U("/getTask"));
@@ -68,7 +63,7 @@ decltype(auto) go(string_t const& addr) {
         if (!js.has_field(U("data"))) {
             ucout << "No data field in response!" << endl;
             ucout << js << endl;
-            throw exception("No data field in resopse from WEB Interface");
+            throw runtime_error("No data field in resopse from WEB Interface");
         }
 
         //auto tasks = make_shared<vector<concurrency::task<json::value>>>();
@@ -97,17 +92,17 @@ decltype(auto) go(string_t const& addr) {
                      ",occupation"
                      ",relatives,relation,personal,connections,exports,wall_comments,activities,interests,music,movies,tv,books,games,about,quotes,career,military"
                     )
-                );
+            );
             auto requestForId = vkclient->request(methods::GET, builder.to_string())
                 .then([uid = idobj[U("id")]](http_response response) {
                 if (response.status_code() != web::http::status_codes::OK) {
-                    ucout << uid.to_string() + U(" Failed request with status ") + response.reason_phrase() << endl;
-                    throw exception("failed request to VK");
+                    ucout << uid.serialize() + U(" Failed request with status ") + response.reason_phrase() << endl;
+                    throw runtime_error("failed request to VK");
                 }
                 return response.extract_json();
             })
             .then([uid = idobj[U("id")]](json::value ugjs) {
-                ucout << U("Get ") + uid.to_string() + U(" OK") << endl;
+                ucout << U("Get ") + uid.serialize() + U(" OK") << endl;
                 auto resp = ugjs[U("response")];
                 return *resp.as_array().begin();
             });
@@ -169,19 +164,19 @@ int main(int argc, char* argv[])
     auto addr = utility::conversions::to_string_t(argv[1]);
 
     for (;;)
-    try
-    {
-        go(addr)
-            .then([addr](json::value val) {
-            ucout << "Posting collected data to server..." << endl;
-            return post(val, addr);
-        })
-        .wait();
-    }
-    catch (const std::exception &e)
-    {
-        printf("Error exception:%s\n", e.what());
-    }
+        try
+        {
+            go(addr)
+                .then([addr](json::value val) {
+                ucout << "Posting collected data to server..." << endl;
+                return post(val, addr);
+            })
+            .wait();
+        }
+        catch (const std::exception &e)
+        {
+            printf("Error exception:%s\n", e.what());
+        }
 
     return 0;
 }

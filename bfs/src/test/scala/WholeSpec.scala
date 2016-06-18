@@ -68,7 +68,7 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
       val bfs = system.actorOf(Props(new BFSActor(graph.path, used.path, exchange.path)), "BFSActor")
 
-      queue ! RichQueue.Push(Seq(1l))
+      queue ! Queue.Push(Seq(1l))
 
       val g = Map[VKID, Seq[VKID]](1l -> Seq[VKID](2l, 3l), 2l->Seq[VKID](4l), 4l->Seq(5l))
 
@@ -81,7 +81,7 @@ class WholeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
         def receive = {
           case "Run" => {
-            queue ! RichQueue.Pop(Seq("type1"))
+            queue ! Queue.Pop("type1")
           }
           case Envelop(deliveryId, RichQueue.Item(task)) => {
             task.data.foreach { taskData =>

@@ -20,17 +20,25 @@ object Queue {
   delivery guarantee -
 */
 
-class QueueActor extends Actor {
+class QueuePopActor extends Actor {
+  this: QueueBackend =>
+  import Queue._
+
+  def receive = {
+    case Pop(t) => {
+      val task = pop(t)
+      sender ! Item(task)
+    }
+  }
+}
+
+class QueuePushActor extends Actor {
   this: QueueBackend =>
   import Queue._
 
   def receive = {
     case Push(ids) => {
       push(ids)
-    }
-    case Pop(t) => {
-      val task = pop(t)
-      sender ! Item(task)
     }
   }
 }
