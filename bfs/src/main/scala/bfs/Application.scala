@@ -13,7 +13,7 @@ abstract class Runner(args:Array[String])
     val initActors = Map(
       "bfs" -> bfs,
       "exchange" -> exchange,
-      "graph" -> graph,
+      //"graph" -> graph,
       "queue" -> queue,
       "used" -> used
     )
@@ -123,10 +123,13 @@ class UnreliableRunner(args:Array[String], system:ActorSystem, conf:Config) exte
   }
 
   override def queue = {
-    class QueueMongoDBActor extends QueueActor with MongoQueueBackend
+    //class QueueMongoDBActor extends QueueActor with MongoQueueBackend
+    class QueuePushESDBActor extends QueuePushActor with ESQueueBackend
+    class QueuePopESDBActor extends QueuePopActor with ESQueueBackend
     //system.actorOf(Props(new QueueMongoDBActor), "QueueActor")
     import akka.routing._
-    system.actorOf(RoundRobinPool(5).props(Props(new QueueMongoDBActor)), "QueueActor")
+    system.actorOf(RoundRobinPool(20).props(Props(new QueuePushESDBActor)), "QueueActorPush")
+    system.actorOf(RoundRobinPool(10).props(Props(new QueuePopESDBActor)), "QueueActorPop")
   }
 
   override def used = {

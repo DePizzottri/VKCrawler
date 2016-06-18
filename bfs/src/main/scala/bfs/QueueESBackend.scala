@@ -13,6 +13,9 @@ import vkcrawler.Common._
 import vkcrawler.DataModel._
 import org.joda.time.format.ISODateTimeFormat
 
+import scala.concurrent.duration._
+import scala.collection._
+
 trait ESQueueBackend extends QueueBackend {
   this: akka.actor.Actor =>
   val conf = context.system.settings.config
@@ -27,7 +30,14 @@ trait ESQueueBackend extends QueueBackend {
   val refreshAfterPop = conf.getBoolean("queue.es.refreshAfterPop")
   val refreshAfterPush = conf.getBoolean("queue.es.refreshAfterPush")
 
+  val pushPerf = new vkcrawler.PerfCounter("PushPerf", context.system, this, 1000)
+  val popPerf = new vkcrawler.PerfCounter("PopPerf", context.system, this, 1)
+
+  val timeout = 120.seconds
+
   def push(ids:Seq[VKID]) = {
+    pushPerf.begin
+    val now = System.nanoTime
     val queries = ids.map{ Id =>
       update id Id in indexName / typeName docAsUpsert(
         "id" -> Id
@@ -39,22 +49,39 @@ trait ESQueueBackend extends QueueBackend {
         bulk(
           queries
         )
-      }.await
+      }.await(timeout)
 
       if(refreshAfterPush)
-        client.execute{refreshIndex(indexName)}.await
+        client.execute{refreshIndex(indexName)}.await(timeout)
     }
+    //val micros = (System.nanoTime - now) / 1000
+    //akka.event.Logging(context.system, this).info("Push query time: %d microseconds, size: %d".format(micros, queries.size))
+    pushPerf.end
   }
 
   val taskSize = conf.getInt("queue.taskSize")
   val batchSize = conf.getInt("queue.batchSize")
 
+  var cache = mutable.Map[String, mutable.Queue[Task]]()
+
   def pop(`type`:String): Task = {
+    if(!cache.contains(`type`) || (cache(`type`).length == 0)) {
+      cache(`type`) = popAux(`type`)
+    }
+
+    if(cache(`type`).length==0)
+      Task(`type`, Seq())
+    else
+      cache(`type`).dequeue
+  }
+
+  def popAux(`type`:String): mutable.Queue[Task] = {
+    popPerf.begin
     val resp = client.execute {
-        search in indexName / typeName limit taskSize sort {
+        search in indexName / typeName limit batchSize sort {
           field sort "lastUseDate." + `type` order SortOrder.ASC nestedPath "lastUseDate" missing "_first"
         } sourceInclude ("id", "lastUseDate." + `type`)
-      }.await
+      }.await(timeout)
 
     val js = parse(resp.original.toString)
 
@@ -72,19 +99,25 @@ trait ESQueueBackend extends QueueBackend {
       }
     }
 
-
     if(queries.size > 0) {
       client.execute {
         bulk(
           queries
         )
-      }.await
+      }.await(timeout)
 
       if(refreshAfterPop)
-        client.execute{refreshIndex(indexName)}.await
+        client.execute{refreshIndex(indexName)}.await(timeout)
     }
 
-    Task(`type`, taskDatas)
+    //Task(`type`, taskDatas)
+    val tasks = (for(t <- taskDatas.grouped(taskSize)) yield {
+      Task(`type`, t)
+    })
+    val ret = mutable.Queue.empty[Task]
+    ret.enqueue(tasks.toSeq:_*)
+    popPerf.end
+    ret
   }
 }
 

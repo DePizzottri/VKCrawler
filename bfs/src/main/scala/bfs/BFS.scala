@@ -22,7 +22,7 @@ class BFSActor(graph:ActorPath, used:ActorPath, exchange:ActorPath) extends Acto
 
   def receive = {
     case Friends(u, f) => {
-      context.actorSelection(graph) ! Friends(u, f)
+      //context.actorSelection(graph) ! Friends(u, f)
       context.actorSelection(used) ! Used.InsertAndFilter(f)
     }
 

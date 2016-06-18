@@ -27,4 +27,4 @@ prototype/graph.txt
 prototype/snapshots
 
 #CMake build birs
-CrawlerAgents/*/build
+CrawlerAgents/*/build*

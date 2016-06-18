@@ -38,7 +38,8 @@ object Application extends App with SimpleRoutingApp {
 
   val conf = ConfigFactory.load()
 
-  val queue = system.actorSelection(conf.getString("queueactor"))
+  val queuePush = system.actorSelection(conf.getString("queueactor")+"Push")
+  val queuePop = system.actorSelection(conf.getString("queueactor")+"Pop")
   val exchange = system.actorSelection(conf.getString("exchangeactor"))
 
   lazy val root =
@@ -62,10 +63,10 @@ object Application extends App with SimpleRoutingApp {
               //MongoDBSource.getTask(types.split(","))
               import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
-              implicit val timeout = Timeout(15 seconds)
+              implicit val timeout = Timeout(30 seconds)
               if(isReliableBFS)
               {
-                val f = (queue ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
+                val f = (queuePop ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
                   case msg@RichQueue.Item(t) => t
                       //case msg@Queue.Empty => """{error:"No task"}""".parseJson
                 }
@@ -78,7 +79,7 @@ object Application extends App with SimpleRoutingApp {
                 if(types.split(",").size > 0) {
                   val `type` = Random.shuffle(types.split(",").toList).head
 
-                  val f = (queue ? Queue.Pop(`type`)).mapTo[Queue.Item].map{
+                  val f = (queuePop ? Queue.Pop(`type`)).mapTo[Queue.Item].map{
                      case Queue.Item(task) => task
                   }
                   import spray.httpx.SprayJsonSupport._
