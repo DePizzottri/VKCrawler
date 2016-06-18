@@ -55,7 +55,7 @@ class ReliableRunner(args:Array[String], system:ActorSystem, conf:Config) extend
   }
 
   override def exchange = {
-    class RabbitMQExchangeActor extends ReliableExchangeActor(
+    class RabbitMQExchangeActor extends ReliableExchangeActor (
       ActorPath.fromString(system.toString + conf.getString("exchange.bfsactor")),
       ActorPath.fromString(system.toString + conf.getString("exchange.queueactor"))
     ) with RabbitMQExchangeBackend

@@ -49,7 +49,7 @@ trait MongoQueueBackend extends QueueBackend {
       .take(popSize)
       .map { doc =>
         bulkUpdate.find(doc).update($set(`type`+".lastUseDate" -> new Date))
-        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{_.as[DateTime](`type`+".lastUseDate")})
+        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{_.as[DateTime]("lastUseDate")})
       }.toArray
 
       bulkUpdate.execute

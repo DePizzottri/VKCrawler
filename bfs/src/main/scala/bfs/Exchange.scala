@@ -16,7 +16,10 @@ object Exchange {
 class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Actor {
   this: ExchangeBackend =>
 
-  init
+  override def preStart(): Unit = {
+    init
+    super.preStart()
+  }
 
   override def receive = {
     case msg@BFS.Friends(id, ids) => {
