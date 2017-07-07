@@ -15,6 +15,7 @@ services:
   - mongodb
   - redis-server
   - rabbitmq
+  - neo4j
 
 before_script:
   - sleep 15
