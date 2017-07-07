@@ -66,3 +66,40 @@ trait ReliableMongoDBGraphSaverBackend extends ReliableGraphSaverBackend {
     }
   }
 }
+
+import org.anormcypher._
+import play.api.libs.ws._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+
+trait ReliableNeo4jGraphSaverBackend extends ReliableGraphSaverBackend {
+  this: akka.actor.Actor =>
+  val conf = context.system.settings.config
+
+  var wsclient: ning.NingWSClient = null
+
+  var connection: Neo4jConnection = null
+
+  def init(): Unit = {
+    implicit val materializer = ActorMaterializer()
+    wsclient = ning.NingWSClient()
+    implicit val wsc = wsclient
+    connection = Neo4jREST(conf.getString("graph.neo4j.host"), conf.getInt("graph.neo4j.port"))
+  }
+
+  def saveFriends(id:VKID, ids:Seq[VKID]): Unit = {
+    implicit val ec = scala.concurrent.ExecutionContext.global
+    implicit val wsc = wsclient
+    implicit val con = connection
+
+    Cypher(
+      s"""
+WITH ${ids.mkString("[", ",", "]")} as ids
+UNWIND ids as u2id
+MERGE (u1:User {Id:${id}})
+MERGE (u2:User {Id:u2id})
+CREATE UNIQUE p = (u1) - [:FRIEND] -> (u2)
+"""
+).execute()
+  }
+}

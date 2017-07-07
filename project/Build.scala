@@ -14,6 +14,10 @@ object Common {
       val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 
       val protobuf = "com.google.protobuf" % "protobuf-java" % "2.5.0"
+
+      val anormcypherResolver = "anormcypher" at "http://repo.anormcypher.org/"
+
+      val anormcypher = "org.anormcypher" %% "anormcypher" % "0.10.0"
     }
 
     object Akka {
