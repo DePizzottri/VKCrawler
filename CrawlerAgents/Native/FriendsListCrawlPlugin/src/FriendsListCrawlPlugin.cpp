@@ -2,7 +2,7 @@
 
 #include <Poco/ClassLibrary.h>
 
-#include <Poco/Net/HTTPClientSession.h>
+#include <Poco/Net/HTTPSClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/HTTPMessage.h>
@@ -72,6 +72,8 @@ Poco::JSON::Object::Ptr parseBirthday(std::string const& date)
     return bdate;
 }
 
+using namespace std;
+
 Poco::JSON::Array::Ptr friends_get(int uid)
 {
     auto& app = Poco::Util::Application::instance();
@@ -84,7 +86,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
     int offset = 0;
     for (int i = 0; i < 2; ++i)
     {
-        HTTPClientSession session("api.vk.com", 80);
+        HTTPSClientSession session("api.vk.com");
 
         URI uri("/method/friends.get");
         uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
@@ -99,6 +101,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
         auto& respStream = session.receiveResponse(resp);
 
         poco_information_f1(app.logger(), "friends.get response status: %d", (int)resp.getStatus());
+		//cout << "friends.get response status: " << (int)resp.getStatus() << endl;
 
         using namespace Poco::JSON;
 
@@ -125,7 +128,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
                 auto userObj = user.extract<Object::Ptr>();
                 if (!userObj->has("uid"))
                 {
-                    poco_warning(app.logger(), "No uid field");
+                    //poco_warning(app.logger(), "No uid field");
                     continue;
                 }
                 else
@@ -150,6 +153,7 @@ Poco::JSON::Array::Ptr friends_get(int uid)
             catch (Poco::Exception & e)
             {
                 poco_warning(app.logger(), "Error parsing friends.get object: " + e.displayText());
+				//cout << "Error parsing friends.get object: " + e.displayText() << endl;
             }
         }
     }
@@ -164,7 +168,7 @@ Poco::JSON::Object::Ptr getUserInfo(int uid)
     using namespace Poco;
     using namespace Poco::Net;
 
-    HTTPClientSession session("api.vk.com", 80);
+    HTTPSClientSession session("api.vk.com");
 
     URI uri("/method/users.get");
     uri.addQueryParameter("user_id", Poco::NumberFormatter::format(uid));
@@ -235,6 +239,7 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
                 catch (Poco::Exception const& e)
                 {
                     poco_warning(app.logger(), "Error set birthday " + e.displayText());
+					//std::cout << "Error set birthday " + e.displayText() <<endl;
                     friends_raw->set("birthday", "null");
                 }
             }
@@ -263,6 +268,7 @@ Poco::JSON::Object::Ptr FriendsListCrawlPlugin::doProcess(Poco::JSON::Object::Pt
         catch (Poco::Exception const& e)
         {
             poco_warning(app.logger(), "Collect info " + e.displayText());
+			//std::cout << "Collect info " + e.displayText() << endl;
             continue;
         }
 

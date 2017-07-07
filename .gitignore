@@ -25,3 +25,9 @@ project/plugins/project/
 prototype/journal
 prototype/graph.txt
 prototype/snapshots
+
+CrawlerAgents/Native/build
+CrawlerAgents/Native/*/Debug
+CrawlerAgents/Native/*/RelWithDebInfo
+*.tlog
+CrawlerAgents/Native/App/Crawler.VC.db

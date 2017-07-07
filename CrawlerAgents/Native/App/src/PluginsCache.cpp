@@ -2,7 +2,7 @@
 
 #include <PluginsCache.h>
 
-Poco::SingletonHolder<PluginsCache> PluginsCache::m_instance = Poco::SingletonHolder<PluginsCache>();
+Poco::SingletonHolder<PluginsCache> PluginsCache::m_instance{};
 
 PluginsCache& PluginsCache::instance()
 {
