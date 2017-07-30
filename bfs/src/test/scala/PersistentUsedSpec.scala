@@ -55,7 +55,7 @@ class PersistentUsedSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
         //expectMsgClass(1.seconds, classOf[Used.Filtered])
       }
       //more timeout for Travis
-      receiveN(num, 30.seconds)
+      receiveN(num, 4.minutes)
       val dur = System.currentTimeMillis - start
       println(s"Persistant used throughput : ${(num*1.0)/(dur/1000.0)} msg/sec")
     }

@@ -14,7 +14,7 @@ object QueueESIntegration {
     s"""
     queue {
       es {
-        uri = "elasticsearch://192.168.1.4:9300"
+        uri = "elasticsearch://localhost:9300"
         clustername = "meowes"
         index = "queue_test"
         type = "queue"
