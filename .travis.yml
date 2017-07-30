@@ -15,6 +15,7 @@ services:
   - mongodb
   - redis-server
   - rabbitmq
+  - elasticsearch
 
 before_script:
   - sleep 15
