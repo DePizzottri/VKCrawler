@@ -29,7 +29,7 @@ class ExchangeActor(bfsActorPath:ActorPath, queueActorPath:ActorPath) extends Ac
       publish("friends", msg.toJson)
     }
     case msg@BFS.NewUsers(ids) => {
-      context.actorSelection(queueActorPath+"Push") ! Queue.Push(ids)
+      context.actorSelection(queueActorPath) ! Queue.Push(ids)
       //publish
       import NewUsersJsonSupport._
       publish("new_users", msg.toJson)
