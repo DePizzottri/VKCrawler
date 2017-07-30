@@ -74,23 +74,25 @@ class QueueESIntegration(_system: ActorSystem) extends BFSTestSpec(_system) {
   import vkcrawler.bfs._
   import vkcrawler.DataModel._
 
-  class QueueESDBActor extends QueueActor with ESQueueBackend
+  class QueueESDBPopActor extends QueuePopActor with ESQueueBackend
+  class QueueESDBPushActor extends QueuePushActor with ESQueueBackend
 
   "ESQueueActor " must {
     "return empty on emtpy queue" in {
-      val queue = system.actorOf(Props(new QueueESDBActor))
+      val queue = system.actorOf(Props(new QueueESDBPopActor))
       queue ! Queue.Pop("stub")
       expectMsg(Queue.Item(Task("stub", Seq())))
     }
 
     "preserve queue order" in {
       import vkcrawler.Common._
-      val queue = system.actorOf(Props(new QueueESDBActor))
+      val popQueue = system.actorOf(Props(new QueueESDBPopActor))
+      val pushQueue = system.actorOf(Props(new QueueESDBPushActor))
       val ins = Seq[VKID](1, 2, 3, 4)
-      queue ! Queue.Push(ins)
-      queue ! Queue.Pop("stub")
+      pushQueue ! Queue.Push(ins)
+      popQueue ! Queue.Pop("stub")
       expectMsg(Queue.Item(Task("stub", Seq(TaskData(2, None), TaskData(4, None)))))
-      queue ! Queue.Pop("stub")
+      popQueue ! Queue.Pop("stub")
       expectMsg(Queue.Item(Task("stub", Seq(TaskData(1, None), TaskData(3, None)))))
       // queue ! Queue.Pop("stub")
       // expectMsg(Queue.Item(Task("stub", Seq(TaskData(2, _), TaskData(4, _)))))
