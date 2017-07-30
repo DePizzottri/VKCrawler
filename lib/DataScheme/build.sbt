@@ -6,5 +6,6 @@ libraryDependencies ++= Seq(
   Other.casbah,
   Other.slf4j,
   Other.typesafeConfig,
-  Other.scalaTest
+  Other.scalaTest,
+  Akka.actor
 )

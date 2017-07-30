@@ -25,7 +25,9 @@ libraryDependencies ++= Seq(
   Other.slf4j,
   Other.rabbitmq,
   Other.scalaTest,
-  Other.anormcypher
+  Other.json4sCore,
+  Other.json4sNative,
+  ElasticSearch.core
   //Other.protobuf
 )
 
@@ -78,9 +80,9 @@ test in assembly := {}
 //   }
 // }
 //
-// assemblyMergeStrategy in assembly := {
-//   case PathList("META-INF", "aop.xml") => aopMerge
-//   case x =>
-//     val oldStrategy = (assemblyMergeStrategy in assembly).value
-//     oldStrategy(x)
-// }
+assemblyMergeStrategy in assembly := {
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class") => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}

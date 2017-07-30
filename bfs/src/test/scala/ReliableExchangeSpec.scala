@@ -4,6 +4,7 @@ import akka.actor._
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
 import akka.testkit.TestProbe
+import spray.json._
 
 object ReliableExchangeSpec {
   def config = ConfigFactory.parseString(
@@ -24,6 +25,7 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
   def this() = this(ActorSystem("ExchangeSystem", ReliableExchangeSpec.config.withFallback(PersistanceSpecConfiguration.config)))
 
   import vkcrawler.bfs._
+  import vkcrawler.bfs.SprayJsonSupport._
 
   assume(system.settings.config.getString("akka.persistence.at-least-once-delivery.redeliver-interval") === "1s")
 
@@ -58,12 +60,12 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
 
   import scala.collection.concurrent.TrieMap
 
-  var published = TrieMap.empty[String, Any]
+  var published = TrieMap.empty[String, JsValue]
   trait MockExchangeBackend extends ExchangeBackend {
     def init:Unit = {
-      published = TrieMap.empty[String, Any]
+      published = TrieMap.empty[String, JsValue]
     }
-    def publish(tag:String, msg: Any):Unit = {
+    def publish(tag:String, msg: JsValue):Unit = {
       published += ((tag, msg))
     }
   }
@@ -91,7 +93,9 @@ class ReliableExchangeSpec(_system: ActorSystem) extends BFSTestSpec(_system) {
       eq.msg should be (RichQueue.Push(newUsers.users))
       exchange ! Confirm(eq.deliveryId)
 
-      published should be (TrieMap("friends" -> friends, "new_users" -> newUsers))
+      import FriendsJsonSupport._
+      import NewUsersJsonSupport._
+      published should be (TrieMap("friends" -> friends.toJson, "new_users" -> newUsers.toJson))
     }
   }
 }

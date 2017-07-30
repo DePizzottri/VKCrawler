@@ -15,6 +15,7 @@ services:
   - mongodb
   - redis-server
   - rabbitmq
+  - elasticsearch
   - neo4j
 
 before_script:

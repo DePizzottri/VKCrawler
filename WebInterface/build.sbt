@@ -38,7 +38,8 @@ libraryDependencies ++= Seq(
   //Other.protobuf
 )
 
-scalacOptions ++= Seq("-feature")
+scalacOptions ++= Seq("-feature", "-deprecation")
+
 
 // aspectjSettings
 //
@@ -74,3 +75,11 @@ assemblyMergeStrategy in assembly := {
     val oldStrategy = (assemblyMergeStrategy in assembly).value
     oldStrategy(x)
 }
+
+assemblyMergeStrategy in assembly := {
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class") => MergeStrategy.first
+  case x =>
+    val oldStrategy = (assemblyMergeStrategy in assembly).value
+    oldStrategy(x)
+}
+

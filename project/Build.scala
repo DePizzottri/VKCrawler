@@ -3,9 +3,9 @@ import sbt._
 object Common {
 
     object Other {
-      val jedis = "redis.clients" % "jedis" % "2.7.2"
+      val jedis = "redis.clients" % "jedis" % "2.8.1"
       val rabbitmq = "com.rabbitmq" % "amqp-client" % "3.5.4"
-      val casbah = "org.mongodb" %% "casbah" % "2.8.2"
+      val casbah = "org.mongodb" %% "casbah" % "3.1.1"
 
       val slf4j = "org.slf4j" % "slf4j-simple" % "1.7.7"
 
@@ -15,15 +15,14 @@ object Common {
 
       val protobuf = "com.google.protobuf" % "protobuf-java" % "2.5.0"
 
-      val anormcypherResolver = "anormcypher" at "http://repo.anormcypher.org/"
-
-      val anormcypher = "org.anormcypher" %% "anormcypher" % "0.10.0"
+      val json4sCore =  "org.json4s" %% "json4s-core" % "3.2.11"
+      val json4sNative = "org.json4s" %% "json4s-native" % "3.2.11"
     }
 
     object Akka {
       val resolver = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
       val groupId = "com.typesafe.akka"
-      val version = "2.4.0"
+      val version = "2.4.6"
       val actor = groupId %% "akka-actor" % version
       val remote = groupId %% "akka-remote" % version
       val protobuf = groupId %% "akka-protobuf" % version
@@ -31,7 +30,7 @@ object Common {
       val testKit = groupId %% "akka-testkit" % version % "test"
 
       val imMemoryPersistenceResolver = "dnvriend at bintray" at "http://dl.bintray.com/dnvriend/maven"
-      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "1.0.10"
+      val persistencePluginCasbah = "com.github.scullxbones" %% "akka-persistence-mongo-casbah" % "1.2.5"
       val persistencePluginInMemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % "1.1.3"
     }
 
@@ -59,6 +58,12 @@ object Common {
       val metrics = groupId %% "kamon-system-metrics" % version
       val spray = groupId %% "kamon-spray" % version
       val aspectj = "org.aspectj" % "aspectjweaver" % "1.8.6"
+    }
+
+    object ElasticSearch {
+      val groupId = "com.sksamuel.elastic4s" 
+      val version = "2.1.2"
+      val core = groupId %% "elastic4s-core" % version
     }
 
     object Plugins {

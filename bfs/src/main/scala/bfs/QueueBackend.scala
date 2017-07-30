@@ -4,9 +4,15 @@ import vkcrawler.Common._
 
 import java.util.Date
 
+import vkcrawler.DataModel._
+
+import org.joda.time.DateTime
+
+import scala.collection._
+
 trait QueueBackend {
   def push(ids:Seq[VKID]): Unit
-  def popMany(): Seq[VKID]
+  def pop(`type`:String): Task
 }
 
 import com.mongodb.casbah.MongoClient
@@ -17,7 +23,7 @@ trait MongoQueueBackend extends QueueBackend {
   this: akka.actor.Actor =>
   val conf = context.system.settings.config
 
-  var mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+  var mongoClient = MongoClient(MongoClientURI(conf.getString("queue.mongodb.uri")))
   var db = mongoClient(conf.getString("queue.mongodb.database"))
   var col = db(conf.getString("queue.mongodb.queue"))
 
@@ -31,21 +37,41 @@ trait MongoQueueBackend extends QueueBackend {
     }
   }
 
-  val popSize = conf.getInt("queue.popSize")
+  val taskSize = conf.getInt("queue.taskSize")
+  val batchSize = conf.getInt("queue.batchSize")
 
-  def popMany(): Seq[VKID] = {
+  var cache = mutable.Map[String, mutable.Queue[Task]]()
+
+  def pop(`type`:String): Task = {
+    if(!cache.contains(`type`) || (cache(`type`).length == 0)) {
+      cache(`type`) = popAux(`type`)
+    }
+
+    //println(`type`)
+    //println(cache.size)
+    //println(cache(`type`).length)
+
+    if(cache(`type`).length==0)
+      Task(`type`, Seq())
+    else
+      cache(`type`).dequeue
+  }
+
+  def popAux(`type`:String): mutable.Queue[Task] = {
+    akka.event.Logging(context.system, this).info("Pop start")
+    val now = System.nanoTime
     val bulkUpdate = col.initializeUnorderedBulkOperation
 
     val tryRet = Try{
       val ret = col.find(
         MongoDBObject.empty,
-        MongoDBObject("id" -> 1)
+        MongoDBObject("id" -> 1, `type`+".lastUseDate" -> 1)
       )
-      .sort(MongoDBObject("lastUseDate" -> 1))
-      .take(popSize)
-      .flatMap { doc =>
-        bulkUpdate.find(doc).update($set("lastUseDate" -> new Date))
-        doc.getAs[VKID]("id")
+      .sort(MongoDBObject(`type`+".lastUseDate" -> 1))
+      .take(batchSize + scala.util.Random.nextInt(batchSize))
+      .map { doc =>
+        bulkUpdate.find(doc).update($set(`type`+".lastUseDate" -> new Date))
+        TaskData(doc.as[VKID]("id"), doc.getAs[MongoDBObject](`type`).map{x => new DateTime(x.as[Date]("lastUseDate"))})
       }.toArray
 
       bulkUpdate.execute
@@ -53,24 +79,38 @@ trait MongoQueueBackend extends QueueBackend {
       ret
     }
 
-    tryRet match {
-      case Success(r) => r
-      case Failure(e) => Seq()
+    val a:mutable.Queue[Task] = tryRet match {
+      case Success(r) => {
+        val tasks = (for(t <- r.grouped(taskSize)) yield {
+          Task(`type`, t)
+        })
+        val ret = mutable.Queue.empty[Task]
+        ret.enqueue(tasks.toSeq:_*)
+        ret
+      }
+      case Failure(e) => {
+        akka.event.Logging(context.system, this).warning("Failure in queue pop {}", e)
+        mutable.Queue.empty
+      }
     }
+    val micros = (System.nanoTime - now) / 1000
+    akka.event.Logging(context.system, this).info("Pop finished: %d microseconds".format(micros))
+
+    a
   }
 }
 
 trait LocalQueueBackend extends QueueBackend {
-  var queue = scala.collection.mutable.Queue.empty[VKID]
+  var queue = scala.collection.mutable.Queue.empty[TaskData]
   def push(ids:Seq[VKID]) = {
-    queue ++= ids
+    queue ++= ids.map{id => TaskData(id, None)}
   }
 
-  def popMany(): Seq[VKID] = {
+  def pop(`type`:String): Task = {
     if(queue.isEmpty)
-      Seq.empty[VKID]
+      Task(`type`, Seq())
     else
-      Seq(queue.dequeue())
+      Task(`type`, Seq(queue.dequeue()))
   }
 }
 
@@ -82,7 +122,7 @@ trait ReliableMongoQueueBackend extends ReliableQueueBackend with MongoQueueBack
   this: akka.actor.Actor =>
 
   def recoverQueue: Unit = {
-    mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
+    mongoClient = MongoClient(MongoClientURI(conf.getString("queue.mongodb.uri")))
     db = mongoClient(conf.getString("queue.mongodb.database"))
     col = db(conf.getString("queue.mongodb.queue"))
   }

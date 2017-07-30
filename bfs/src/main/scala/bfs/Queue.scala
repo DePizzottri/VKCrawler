@@ -5,12 +5,13 @@ import akka.persistence._
 
 import vkcrawler.Common._
 
+import vkcrawler.DataModel._
+
 object Queue {
   case class Push(ids:Seq[VKID])
-  case class Pop()
+  case class Pop(`type`:String)
   case object PopNoConfirm
-  case class Items(ids:Seq[VKID])
-  case class Empty()
+  case class Item(task:Task)
 }
 
 /*
@@ -19,20 +20,25 @@ object Queue {
   delivery guarantee -
 */
 
-class QueueActor extends Actor {
+class QueuePopActor extends Actor {
+  this: QueueBackend =>
+  import Queue._
+
+  def receive = {
+    case Pop(t) => {
+      val task = pop(t)
+      sender ! Item(task)
+    }
+  }
+}
+
+class QueuePushActor extends Actor {
   this: QueueBackend =>
   import Queue._
 
   def receive = {
     case Push(ids) => {
       push(ids)
-    }
-    case Pop => {
-      val items = popMany()
-      if(!items.isEmpty)
-        sender ! Items(items)
-      else
-        sender ! Empty
     }
   }
 }
@@ -56,13 +62,9 @@ class ReliableQueueActor extends ReliableMessaging {
     case Push(ids) => {
       push(ids)
     }
-    case Pop => {
-      val items = popMany()
-      if(!items.isEmpty) {
-        deliver(Items(items), sender.path)
-      } else {
-        deliver(Empty, sender.path)
-      }
+    case Pop(t) => {
+      val task = pop(t)
+      deliver(Item(task), sender.path)
     }
   }
 

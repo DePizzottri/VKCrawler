@@ -18,7 +18,7 @@ import java.util.Date
 import vkcrawler.DataModel._
 import vkcrawler.DataModel.SprayJsonSupport._
 import TaskResultJsonSupport._
-import UserInfoJsonSupport._
+import FriendsListJsonSupport._
 
 // import vkcrawler.DataModel.SprayJsonSupport.TaskResultJsonSupport._
 
@@ -38,7 +38,8 @@ object Application extends App with SimpleRoutingApp {
 
   val conf = ConfigFactory.load()
 
-  val queue = system.actorSelection(conf.getString("queueactor"))
+  val queuePush = system.actorSelection(conf.getString("queueactor")+"Push")
+  val queuePop = system.actorSelection(conf.getString("queueactor")+"Pop")
   val exchange = system.actorSelection(conf.getString("exchangeactor"))
 
   lazy val root =
@@ -50,6 +51,8 @@ object Application extends App with SimpleRoutingApp {
 
   import TaskJsonSupport._
 
+  val isReliableBFS = args.contains("reliable")
+
   lazy val getTask =
     path("getTask") {
       get {
@@ -60,13 +63,33 @@ object Application extends App with SimpleRoutingApp {
               //MongoDBSource.getTask(types.split(","))
               import vkcrawler.bfs._
               import scala.concurrent.ExecutionContext.Implicits.global
-              implicit val timeout = Timeout(15 seconds)
-              val f = (queue ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
-                case msg@RichQueue.Item(t) => t
-                    //case msg@Queue.Empty => """{error:"No task"}""".parseJson
+              implicit val timeout = Timeout(30 seconds)
+              if(isReliableBFS)
+              {
+                val f = (queuePop ? RichQueue.PopUnreliable(types.split(","))).mapTo[RichQueue.Item].map{
+                  case msg@RichQueue.Item(t) => t
+                      //case msg@Queue.Empty => """{error:"No task"}""".parseJson
+                }
+                import spray.httpx.SprayJsonSupport._
+                complete(f)
               }
-              import spray.httpx.SprayJsonSupport._
-              complete(f)
+              else
+              {
+                import scala.util.Random
+                if(types.split(",").size > 0) {
+                  val `type` = Random.shuffle(types.split(",").toList).head
+
+                  val f = (queuePop ? Queue.Pop(`type`)).mapTo[Queue.Item].map{
+                     case Queue.Item(task) => task
+                  }
+                  import spray.httpx.SprayJsonSupport._
+                  complete(f)
+                }
+                else
+                {
+                  complete("""{"error":"bad type field in query"}""")
+                }
+              }
             }
           }
         }
@@ -74,25 +97,34 @@ object Application extends App with SimpleRoutingApp {
     }
 
   val filterCity = conf.getInt("WEB.filterCity")
+  val noFilterCity = filterCity == -1
 
   lazy val postTask = {
     path("postTask") {
       post {
         entity(as[TaskResult]) { res =>
           res.`type` match {
-            case "friends_list" => {
-              val flo = res.data.convertTo[Seq[UserInfo]]
-              for(info <- flo) {
-                import UserInfoJsonSupport._
-                exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
-                exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info.toJson.compactPrint)
+            case "friends_list" => detach(){
+              val friends = res.data.convertTo[Seq[FriendsList]]
+              for(info <- friends) {
+                if(noFilterCity)
+                  exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.map(x => x.uid))
+                else
+                  exchange ! vkcrawler.bfs.BFS.Friends(info.uid, info.friends.filter(x => x.city == filterCity).map(x => x.uid))
               }
 
               complete("Ok")
             }
-            case "wall_posts" => {
-              for(p <- res.data.convertTo[Vector[JsValue]]) {
-                exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p.compactPrint)
+            case "user_info" => detach(){
+              val infos = res.data.convertTo[Seq[JsValue]]
+              for(info <- infos) {
+                exchange ! vkcrawler.bfs.Exchange.Publish("user_info", info)
+              }
+              complete("Ok")
+            }
+            case "wall_posts" => detach(){
+              for(p <- res.data.convertTo[Seq[JsValue]]) {
+                exchange ! vkcrawler.bfs.Exchange.Publish("wall_posts", p)
               }
 
               complete("Ok")
@@ -121,7 +153,7 @@ object Application extends App with SimpleRoutingApp {
           implicit val executionContext = system.dispatcher
           Await.result(IO(Http) ? Http.CloseAll, 15 seconds)
           system.stop(IO(Http))
-          system.shutdown();
+          system.terminate();
           "Ok"
         }
       }

@@ -19,8 +19,8 @@ object QueueMongoDBIntegration {
         database = vkcrawler_queue_test
         queue = queue
       }
-
-      popSize = $popSize
+      taskSize = $popSize
+      batchSize = 10
     }
     """.stripMargin
   )
@@ -43,13 +43,13 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     val conf = system.settings.config
     var mongoClient = MongoClient(conf.getString("queue.mongodb.host"), conf.getInt("queue.mongodb.port"))
     var db = mongoClient(conf.getString("queue.mongodb.database"))
-    var col = db(conf.getString("queue.mongodb.queue"))
 
     db.dropDatabase
-    system.shutdown()
+    system.terminate()
   }
 
   import vkcrawler.bfs._
+  import vkcrawler.DataModel._
 
   class QueueMongoDBActor extends ReliableQueueActor with ReliableMongoQueueBackend
 
@@ -57,11 +57,11 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
     "return empty on emtpy queue" in {
       import ReliableMessaging._
       val queue = system.actorOf(Props(new QueueMongoDBActor))
-      queue ! Envelop(13, Queue.Pop)
+      queue ! Envelop(13, Queue.Pop("stub"))
 
       expectMsg(Confirm(13))
       val e = expectMsgClass(classOf[Envelop])
-      e.msg should be (Queue.Empty)
+      e.msg should be (Queue.Item(Task("stub", Seq())))
       queue ! Confirm(e.deliveryId)
       expectNoMsg(1.seconds)
     }
@@ -74,10 +74,27 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
       val queue = system.actorOf(Props(new QueueMongoDBActor))
       val ins = (1l to popSize * 2).toSeq
       queue ! Queue.Push(ins)
-      queue ! Queue.Pop
-      expectMsg(10.seconds, Envelop(2, Queue.Items(1l to popSize)))
-      queue ! Queue.Pop
-      expectMsg(10.seconds, Envelop(3, Queue.Items((1l to popSize).map{x => x + popSize})))
+      queue ! Queue.Pop("stub")
+      //expectMsg(10.seconds, Envelop(2, Queue.Items(1l to popSize)))
+      expectMsg(
+        10.seconds,
+        Envelop(
+          2,
+          Queue.Item(
+            Task("stub", (1l to popSize).map{id => TaskData(id, None)})
+          )
+        )
+      )
+      queue ! Queue.Pop("stub")
+      expectMsg(
+        10.seconds,
+        Envelop(
+          3,
+          Queue.Item(
+            Task("stub", (1l to popSize).map{id => TaskData(id + popSize, None)})
+          )
+        )
+      )
     }
 
     "be idempotent " in {
@@ -91,10 +108,27 @@ class QueueMongoDBIntegration(_system: ActorSystem) extends BFSTestSpec(_system)
 
       val ins = Seq[VKID](1, 1, 1)
       queue ! Queue.Push(ins)
-      queue ! Queue.Pop
-      expectMsg(10.seconds, Envelop(1, Queue.Items(1l to popSize)))
-      queue ! Queue.Pop
-      expectMsg(10.seconds, Envelop(2, Queue.Items((1l to popSize).map{x => x + popSize})))
+      queue ! Queue.Pop("stub2")
+      //expectMsg(10.seconds, Envelop(2, Queue.Items(1l to popSize)))
+      expectMsg(
+        10.seconds,
+        Envelop(
+          1,
+          Queue.Item(
+            Task("stub2", (1l to popSize).map{id => TaskData(id, None)})
+          )
+        )
+      )
+      queue ! Queue.Pop("stub2")
+      expectMsg(
+        10.seconds,
+        Envelop(
+          2,
+          Queue.Item(
+            Task("stub2", (1l to popSize).map{id => TaskData(id + popSize, None)})
+          )
+        )
+      )
     }
   }
 }
