@@ -5,7 +5,8 @@ import Common._
 resolvers ++= Seq (
   Akka.resolver,
   Akka.imMemoryPersistenceResolver,
-  Spray.resolver
+  Spray.resolver,
+  Other.anormcypherResolver
 )
 
 libraryDependencies ++= Seq(

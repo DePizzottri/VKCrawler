@@ -16,6 +16,10 @@
 
 #include <Poco/StreamCopier.h>
 
+#include <Poco/Net/SSLManager.h>
+#include <Poco/Net/AcceptCertificateHandler.h>
+
+
 #ifdef PERFORMANCE_COUNT
 #include <atomic>
 #include <chrono>
@@ -36,6 +40,11 @@ WorkerTask::WorkerTask(Poco::NotificationQueue& queue, int n):
 
 void WorkerTask::runTask()
 {
+	Poco::SharedPtr<Poco::Net::InvalidCertificateHandler> pAcceptCertHandler = new Poco::Net::AcceptCertificateHandler(false);
+
+	Poco::Net::Context::Ptr pContext = new Poco::Net::Context(Poco::Net::Context::CLIENT_USE, "", "", "", Poco::Net::Context::VERIFY_NONE, 9, false, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+	Poco::Net::SSLManager::instance().initializeClient(NULL, pAcceptCertHandler, pContext);
+
 	auto& app = Poco::Util::Application::instance();
 
 	const std::string serverHost = app.config().getString("server.host");

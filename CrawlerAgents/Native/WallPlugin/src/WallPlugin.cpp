@@ -2,7 +2,7 @@
 
 #include <Poco/ClassLibrary.h>
 
-#include <Poco/Net/HTTPClientSession.h>
+#include <Poco/Net/HTTPSClientSession.h>
 #include <Poco/Net/HTTPRequest.h>
 #include <Poco/Net/HTTPResponse.h>
 #include <Poco/Net/HTTPMessage.h>
@@ -81,7 +81,7 @@ void getWall(int uid, Poco::JSON::Array::Ptr & result, Poco::Timestamp const& la
     using namespace Poco;
     using namespace Poco::Net;
     using namespace JSON;
-    HTTPClientSession session("api.vk.com", 80);
+    HTTPSClientSession session("api.vk.com");
 
     //http://api.vk.com/method/wall.get.json?owner_id=30542028&offset=114&count=2&v=5.37
 

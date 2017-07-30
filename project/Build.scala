@@ -14,7 +14,7 @@ object Common {
       val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 
       val protobuf = "com.google.protobuf" % "protobuf-java" % "2.5.0"
-      
+
       val json4sCore =  "org.json4s" %% "json4s-core" % "3.2.11"
       val json4sNative = "org.json4s" %% "json4s-native" % "3.2.11"
     }

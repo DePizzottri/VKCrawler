@@ -26,5 +26,8 @@ prototype/journal
 prototype/graph.txt
 prototype/snapshots
 
-#CMake build birs
-CrawlerAgents/*/build*
+CrawlerAgents/Native/build
+CrawlerAgents/Native/*/Debug
+CrawlerAgents/Native/*/RelWithDebInfo
+*.tlog
+CrawlerAgents/Native/App/Crawler.VC.db

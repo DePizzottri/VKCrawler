@@ -16,6 +16,7 @@ services:
   - redis-server
   - rabbitmq
   - elasticsearch
+  - neo4j
 
 before_script:
   - sleep 15
